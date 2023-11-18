@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "deso-protocol": "^2.6.3",
+    "express": "^4.18.2"
+  }
+}
