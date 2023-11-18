@@ -1,5 +1,11 @@
 
-const examplePosts = [
+export type Bet = {
+  greeting: string;
+  event_description: string;
+  outcomes: string[];
+  explainer: string;
+};
+export const examplePosts = [
   {
     "greeting": "Hey there, high rollers! 🐮✨ Ready to milk the odds and grab some wins today?",
     "event_description": "NFL Sunday Showdown",
