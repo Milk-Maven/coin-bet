@@ -1,5 +1,5 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+const express = require('express');
+const bodyParser = require('body-parser');
 //tengu app name
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
