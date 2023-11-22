@@ -8,6 +8,13 @@ const bs58check = require('bs58check')
 const bip39 = require('bip39');
 const axios = require('axios');
 
+//@ts-ignore
+type Bet = {
+  greeting: string;
+  event_description: string;
+  outcomes: string[];
+  explainer: string;
+};
 type Network = 'mainnet' | 'testnet';
 
 
@@ -88,7 +95,7 @@ const PUBLIC_KEY_PREFIXES = {
 };
 
 
-const makeBet = async () => {
+const makeBet = async (bet: Bet) => {
   // const deso = await Deso;
   const keyPair = await generateKeyFromSource({ mnemonic: process.env.APP_KEY ?? '' })
   const publicKey = publicKeyToDeSoPublicKey(keyPair)
@@ -104,4 +111,4 @@ const makeBet = async () => {
   // });
   // deso.signTx('temp',)
 }
-makeBet()
+module.exports = { makeBet }

@@ -1,5 +1,14 @@
+// @ts-ignore
 const axios = require('axios');
-const Bet = require('./posts').Bet;
+
+
+//@ts-ignore
+type Bet = {
+  greeting: string;
+  event_description: string;
+  outcomes: string[];
+  explainer: string;
+};
 
 
 // Define the EventDetails type
@@ -18,10 +27,10 @@ const betEndpoint = 'bet/';
 
 // Make an HTTP POST request
 axios.post(baseUrl + betEndpoint + 'new', myEvent)
-  .then(response => {
+  .then((response: { data: string }) => {
     console.log('POST request successful:', response.data);
   })
-  .catch(error => {
+  .catch((error: { message: string }) => {
     console.error('Error making POST request:', error.message);
   });
 
