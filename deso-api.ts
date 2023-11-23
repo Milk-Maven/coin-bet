@@ -6,6 +6,7 @@ const HDKey = require('hdkey')
 const sha256 = require('sha256')
 const bs58check = require('bs58check')
 const bip39 = require('bip39');
+//@ts-ignore
 const axios = require('axios');
 
 //@ts-ignore
@@ -16,7 +17,6 @@ type Bet = {
   explainer: string;
 };
 type Network = 'mainnet' | 'testnet';
-
 
 interface KeyFromMnemonicInput {
   mnemonic: string;
@@ -99,7 +99,7 @@ const makeBet = async (bet: Bet) => {
   // const deso = await Deso;
   const keyPair = await generateKeyFromSource({ mnemonic: process.env.APP_KEY ?? '' })
   const publicKey = publicKeyToDeSoPublicKey(keyPair)
-  console.log(publicKey)
+  console.log(bet)
   signMessageLocally({ transactionHex: '', keyPair })
   // const txInfo = await Deso.submitPost({
   //   UpdaterPublicKeyBase58Check: publicKey,

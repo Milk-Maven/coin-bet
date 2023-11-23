@@ -1,6 +1,8 @@
 // @ts-ignore
 const axios = require('axios');
 
+//@ts-ignore
+const posts = require('./posts')
 
 //@ts-ignore
 type Bet = {
@@ -26,7 +28,7 @@ const baseUrl = 'http://localhost:3000/';
 const betEndpoint = 'bet/';
 
 // Make an HTTP POST request
-axios.post(baseUrl + betEndpoint + 'new', myEvent)
+axios.post(baseUrl + betEndpoint + 'new', posts.spookyPosts[0])
   .then((response: { data: string }) => {
     console.log('POST request successful:', response.data);
   })
