@@ -1,14 +1,85 @@
-
 require('dotenv').config();
 const ec = require('elliptic').ec;
-const EC = require('elliptic');
 const HDKey = require('hdkey')
 const sha256 = require('sha256')
 const bs58check = require('bs58check')
 const bip39 = require('bip39');
 //@ts-ignore
 const axios = require('axios');
+interface SubmitPostResponse {
+  TstampNanos: number;
+  PostHashHex: string;
+  TotalInputNanos: number;
+  ChangeAmountNanos: number;
+  FeeNanos: number;
+  Transaction: MsgDeSoTxn;
+  TransactionHex: string;
+}
+interface DeSoBodySchema {
+  Body: string;
+  ImageURLs: string[] | null;
+  VideoURLs: string[] | null;
+}
+interface Signature {
+  R: number | null;
+  S: number | null;
+}
+interface DeSoInput {
+  TxID: number[];
+  Index: number;
+}
+interface DeSoOutput {
+  PublicKey: number[] | null;
+  AmountNanos: number;
+}
+interface SubmitPostRequest {
+  UpdaterPublicKeyBase58Check: string;
+  PostHashHexToModify: string;
+  ParentStakeID: string;
+  BodyObj: DeSoBodySchema;
+  RepostedPostHashHex: string;
+  PostExtraData: { [key: string]: string };
+  IsHidden: boolean;
+  MinFeeRateNanosPerKB: number;
+  TransactionFees: null;
+  InTutorial: boolean;
+}
+interface MsgDeSoTxn {
+  TxInputs: DeSoInput[] | null;
+  TxOutputs: DeSoOutput[] | null;
+  TxnMeta: any;
+  PublicKey: number[] | null;
+  ExtraData: { [key: string]: number };
+  Signature: Signature | null;
+  TxnTypeJSON: number;
+}
+interface SubmitPostResponse {
+  TstampNanos: number;
+  PostHashHex: string;
+  TotalInputNanos: number;
+  ChangeAmountNanos: number;
+  FeeNanos: number;
+  Transaction: MsgDeSoTxn;
+  TransactionHex: string;
+}
+const desoNode = 'http://node.deso.org/api/v0/';
 
+interface SumbitTransactionRequest {
+  TransactionHex: string
+}
+const submitTransaction = async (request: SumbitTransactionRequest) => {
+  return await axios.post(`${desoNode}submit-transaction`, request)
+}
+const submitPost = async (
+  request: Partial<SubmitPostRequest>,
+): Promise<
+  SubmitPostResponse> => {
+
+  const constructedTransactionResponse: SubmitPostResponse = (
+    await axios.post(`${desoNode}submit-post`, request)
+  ).data;
+  return constructedTransactionResponse
+}
 //@ts-ignore
 type Bet = {
   greeting: string;
@@ -99,16 +170,17 @@ const makeBet = async (bet: Bet) => {
   // const deso = await Deso;
   const keyPair = await generateKeyFromSource({ mnemonic: process.env.APP_KEY ?? '' })
   const publicKey = publicKeyToDeSoPublicKey(keyPair)
-  console.log(bet)
-  signMessageLocally({ transactionHex: '', keyPair })
-  // const txInfo = await Deso.submitPost({
-  //   UpdaterPublicKeyBase58Check: publicKey,
-  //   BodyObj: {
-  //     Body: 'My first post on DeSo!',
-  //     ImageURLs: [],
-  //     VideoURLs: [],
-  //   },
-  // });
-  // deso.signTx('temp',)
+  const post = await submitPost({
+    "UpdaterPublicKeyBase58Check": publicKey,
+    "BodyObj": {
+      "Body": bet.greeting,
+      "VideoURLs": [],
+      "ImageURLs": []
+    }
+  })
+  console.log({ transactionHex: post.TransactionHex, keyPair })
+  const signMessage = signMessageLocally({ transactionHex: post.TransactionHex, keyPair })
+
+  const res = await submitTransaction({ TransactionHex: signMessage })
 }
 module.exports = { makeBet }
