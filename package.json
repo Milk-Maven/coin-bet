@@ -1,8 +1,10 @@
 {
   "dependencies": {
+    "@noble/secp256k1": "^2.0.0",
     "axios": "^1.6.2",
     "bip39": "^3.1.0",
     "bs58check": "^3.0.1",
+    "cors": "^2.8.5",
     "deso-protocol": "^2.6.3",
     "dotenv": "^16.3.1",
     "elliptic": "^6.5.4",
