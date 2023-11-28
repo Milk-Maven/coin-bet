@@ -18,7 +18,6 @@ const betValidation = z.object({
 });
 app.post('/bet/new', function(req: { body: Bet }) {
   const validationResult = betValidation.safeParse(req.body);
-
   if (validationResult.success) {
     makeBet(validationResult.data as Bet)
   } else {

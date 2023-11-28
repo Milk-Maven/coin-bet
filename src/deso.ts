@@ -69,6 +69,7 @@ export const makeBet = async (bet: Bet): Promise<void> => {
   const seedHex = process.env.APP_SEED_HEX ?? ''
   const keyPair = deso.keygen(seedHex)
   const pubKey = deso.publicKeyToBase58Check(keyPair.public)
+  console.log(pubKey)
   const post = await submitPost({
     "UpdaterPublicKeyBase58Check": pubKey,
     MinFeeRateNanosPerKB: 1500,
