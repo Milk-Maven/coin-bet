@@ -16,6 +16,7 @@ const betValidation = z.object({
   outcomes: z.array(z.string()),
   explainer: z.string(),
 });
+
 app.post('/bet/new', function(req: { body: Bet }) {
   const validationResult = betValidation.safeParse(req.body);
   if (validationResult.success) {
@@ -28,7 +29,6 @@ app.post('/bet/new', function(req: { body: Bet }) {
 
 // start the server
 app.listen(port, () => {
-  makeBet
   console.log(port, 'hello')
 });
 
