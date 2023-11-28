@@ -1,30 +1,50 @@
-import axios from 'axios';
 import * as deso from 'deso-protocol';
+import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config();
 export const makeBet = async (bet) => {
-    const seedHex = process.env.APP_SEED_HEX ?? '';
+    const seedHex = process.env.APP_SEED_HEX;
+    console.log(process.env);
     const keyPair = deso.keygen(seedHex);
     const pubKey = deso.publicKeyToBase58Check(keyPair.public);
-    console.log(pubKey);
-    const post = await submitPost({
+    console.log('oy?');
+    const successRes = await submitPost({
         "UpdaterPublicKeyBase58Check": pubKey,
         MinFeeRateNanosPerKB: 1500,
         "BodyObj": {
             "Body": bet.greeting,
             "VideoURLs": [],
             "ImageURLs": []
-        }
+        },
+        PostHashHexToModify: '',
+        ParentStakeID: '',
+        RepostedPostHashHex: '',
+        PostExtraData: undefined,
+        IsHidden: false,
+        TransactionFees: [],
+        InTutorial: false,
+        IsFrozen: false
+    }).then(postTransaction => {
+        console.log('seed => + seedHex');
+        console.log('seed', seedHex);
+        const res = deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false });
+        return res;
+    }).then(TransactionHex => submitTransaction({ TransactionHex }));
+    return successRes;
+};
+export const submitPost = (req) => {
+    const selectedNodePath = 'https://node.deso.org/api/v0/';
+    const transactionEndpoint = 'submit-post';
+    const post = axios.post(selectedNodePath + transactionEndpoint, req).then(res => {
+        return res.data;
     });
-    console.log(post.TransactionHex, seedHex, { isDerivedKey: false });
-    const signMessaged = await deso.signTx(post.TransactionHex, seedHex, { isDerivedKey: false });
-    const res = await submitTransaction({ TransactionHex: signMessaged });
-    console.log(res);
+    return post;
 };
-const submitPost = async (request) => {
-    const constructedTransactionResponse = (await axios.post(`${desoNode}submit-post`, request)).data;
-    return constructedTransactionResponse;
+export const submitTransaction = (req) => {
+    const selectedNodePath = 'https://node.deso.org/api/v0/';
+    const transactionEndpoint = 'submit-transaction';
+    return axios.post(selectedNodePath + transactionEndpoint, req).then(res => {
+        return res.data;
+    });
 };
-const submitTransaction = async (request) => {
-    return await axios.post(`${desoNode}submit-transaction`, request);
-};
-const desoNode = 'http://node.deso.org/api/v0/';
 //# sourceMappingURL=deso.js.map

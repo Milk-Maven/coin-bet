@@ -4,10 +4,10 @@ import cors from 'cors';
 import { z } from 'zod';
 import { makeBet } from './deso.js';
 const app = express();
+const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
-const port = 3000;
 const betValidation = z.object({
     greeting: z.string(),
     event_description: z.string(),
@@ -26,7 +26,6 @@ app.post('/bet/new', function (req) {
 });
 // start the server
 app.listen(port, () => {
-    makeBet;
-    console.log(port, 'hello');
+    console.log('listening on port ', port);
 });
 //# sourceMappingURL=index.js.map
