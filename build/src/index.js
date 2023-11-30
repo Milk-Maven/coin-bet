@@ -20,7 +20,7 @@ app.post('/bet/new', function (req) {
         makeBet(validationResult.data);
     }
     else {
-        // console.error(validationResult.error.errors);
+        //
     }
     makeBet(req.body);
 });

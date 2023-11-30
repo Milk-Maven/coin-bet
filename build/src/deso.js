@@ -1,14 +1,16 @@
 import * as deso from 'deso-protocol';
 import axios from 'axios';
 import dotenv from 'dotenv';
+// The Golden Calf (project name 100%); 
 dotenv.config();
+// deso.SubmitTransactionResponse
 export const makeBet = async (bet) => {
     const seedHex = process.env.APP_SEED_HEX;
-    console.log(process.env);
     const keyPair = deso.keygen(seedHex);
     const pubKey = deso.publicKeyToBase58Check(keyPair.public);
-    console.log('oy?');
-    const successRes = await submitPost({
+    const potKeyPair = deso.keygen();
+    const potPubKey = deso.publicKeyToBase58Check(potKeyPair.public);
+    const success = await submitPost({
         "UpdaterPublicKeyBase58Check": pubKey,
         MinFeeRateNanosPerKB: 1500,
         "BodyObj": {
@@ -16,21 +18,43 @@ export const makeBet = async (bet) => {
             "VideoURLs": [],
             "ImageURLs": []
         },
+        PostExtraData: { potPubKey },
         PostHashHexToModify: '',
         ParentStakeID: '',
         RepostedPostHashHex: '',
-        PostExtraData: undefined,
         IsHidden: false,
         TransactionFees: [],
         InTutorial: false,
         IsFrozen: false
     }).then(postTransaction => {
-        console.log('seed => + seedHex');
-        console.log('seed', seedHex);
-        const res = deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false });
-        return res;
-    }).then(TransactionHex => submitTransaction({ TransactionHex }));
-    return successRes;
+        return deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false });
+    }).then(TransactionHex => submitTransaction({ TransactionHex })).then((a) => {
+        // now that the transaction exists reply with the options 
+        return Promise.all(bet.outcomes.map(outcome => {
+            return submitPost({
+                UpdaterPublicKeyBase58Check: pubKey,
+                MinFeeRateNanosPerKB: 1500,
+                BodyObj: {
+                    Body: outcome,
+                    VideoURLs: [],
+                    ImageURLs: []
+                },
+                PostExtraData: { potPubKey },
+                PostHashHexToModify: '',
+                ParentStakeID: a.PostEntryResponse.PostHashHex,
+                RepostedPostHashHex: '',
+                IsHidden: false,
+                TransactionFees: [],
+                InTutorial: false,
+                IsFrozen: false
+            });
+        }));
+    }).then(res => {
+        return Promise.all(res.map(postTransaction => {
+            return deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false });
+        }));
+    }).then(signatures => { return Promise.all(signatures.map(TransactionHex => submitTransaction({ TransactionHex }))); });
+    console.log(success);
 };
 export const submitPost = (req) => {
     const selectedNodePath = 'https://node.deso.org/api/v0/';
@@ -45,6 +69,13 @@ export const submitTransaction = (req) => {
     const transactionEndpoint = 'submit-transaction';
     return axios.post(selectedNodePath + transactionEndpoint, req).then(res => {
         return res.data;
+    });
+};
+export const waitForSeconds = (seconds) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(`Waited for ${seconds} seconds!`);
+        }, seconds * 1000); // Convert seconds to milliseconds
     });
 };
 //# sourceMappingURL=deso.js.map

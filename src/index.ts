@@ -24,9 +24,7 @@ app.post('/bet/new', function(req: { body: Bet }) {
   if (validationResult.success) {
     makeBet(validationResult.data as Bet)
   } else {
-    // console.error(validationResult.error.errors);
   }
-  makeBet(req.body)
 });
 
 // start the server
