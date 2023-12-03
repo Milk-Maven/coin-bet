@@ -1,32 +1,30 @@
 import * as deso from 'deso-protocol';
-import { Bet } from './types.js';
 import axios from 'axios';
 import dotenv from 'dotenv'
+import { BetCreate, BetGet } from './validation.js';
+import { getBetQl } from './graphQl.js';
 // The Golden Calf (project name 100%); 
 dotenv.config();
-// deso.SubmitTransactionResponse
-export const makeBet = async (bet: Bet): Promise<void> => {
+
+export type PostEntryResponse = deso.PostEntryResponse;
+export const getBet = async (bet: BetGet) => {
+  const res = getBetQl(bet)
+  return res;
+}
+export const makeBet = async (bet: BetCreate): Promise<void> => {
   const seedHex = process.env.APP_SEED_HEX;
   const keyPair = deso.keygen(seedHex)
   const pubKey = deso.publicKeyToBase58Check(keyPair.public)
   const potKeyPair = deso.keygen();
   const potPubKey = deso.publicKeyToBase58Check(potKeyPair.public);
   const success = await submitPost({
-    "UpdaterPublicKeyBase58Check": pubKey,
-    MinFeeRateNanosPerKB: 1500,
-    "BodyObj": {
-      "Body": bet.greeting,
-      "VideoURLs": [],
-      "ImageURLs": []
+    UpdaterPublicKeyBase58Check: pubKey,
+    BodyObj: {
+      Body: bet.greeting,
+      VideoURLs: [],
+      ImageURLs: []
     },
     PostExtraData: { potPubKey },
-    PostHashHexToModify: '',
-    ParentStakeID: '',
-    RepostedPostHashHex: '',
-    IsHidden: false,
-    TransactionFees: [],
-    InTutorial: false,
-    IsFrozen: false
   }).then(postTransaction => {
     return deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false })
   }).then(TransactionHex => submitTransaction({ TransactionHex })).then((a) => {
@@ -35,20 +33,13 @@ export const makeBet = async (bet: Bet): Promise<void> => {
       return submitPost(
         {
           UpdaterPublicKeyBase58Check: pubKey,
-          MinFeeRateNanosPerKB: 1500,
+          ParentStakeID: a.PostEntryResponse.PostHashHex,
           BodyObj: {
             Body: outcome,
             VideoURLs: [],
             ImageURLs: []
           },
           PostExtraData: { potPubKey },
-          PostHashHexToModify: '',
-          ParentStakeID: a.PostEntryResponse.PostHashHex,
-          RepostedPostHashHex: '',
-          IsHidden: false,
-          TransactionFees: [],
-          InTutorial: false,
-          IsFrozen: false
         }
       )
     }))
@@ -56,15 +47,22 @@ export const makeBet = async (bet: Bet): Promise<void> => {
     return Promise.all(res.map(postTransaction => {
       return deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false })
     }))
-
   }).then(signatures => { return Promise.all(signatures.map(TransactionHex => submitTransaction({ TransactionHex }))) })
   console.log(success)
 }
 
-export const submitPost = (req: deso.SubmitPostRequest): Promise<deso.SubmitPostResponse> => {
+export const submitPost = (req: Partial<deso.SubmitPostRequest>): Promise<deso.SubmitPostResponse> => {
   const selectedNodePath = 'https://node.deso.org/api/v0/'
   const transactionEndpoint = 'submit-post'
-  const post = axios.post(selectedNodePath + transactionEndpoint, req).then(res => {
+  const post = axios.post(selectedNodePath + transactionEndpoint, {
+    MinFeeRateNanosPerKB: 1500,
+    PostHashHexToModify: '',
+    RepostedPostHashHex: '',
+    IsHidden: false,
+    TransactionFees: [],
+    InTutorial: false,
+    IsFrozen: false, ...req
+  }).then(res => {
     return res.data as deso.SubmitPostResponse;
   })
   return post
@@ -77,6 +75,7 @@ export const submitTransaction = (req: deso.SubmitTransactionRequest): Promise<d
     return res.data as deso.SubmitTransactionResponse;
   })
 }
+
 export const waitForSeconds = (seconds: number) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -84,3 +83,4 @@ export const waitForSeconds = (seconds: number) => {
     }, seconds * 1000); // Convert seconds to milliseconds
   });
 }
+
