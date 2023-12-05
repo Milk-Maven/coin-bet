@@ -38,7 +38,8 @@
     "typescript": "~5.1"
   },
   "scripts": {
-    "start": "node build/src/index.js",
+    "start": "npm run buildShared && node build/src/index.js",
+    "buildShared": "npx ts-node ../shared/script.ts",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",

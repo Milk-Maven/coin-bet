@@ -1,7 +1,6 @@
 
 import axios from 'axios';
 import { BetGet } from './validation.js';
-//@ts-ignore
 const executeGraphQl = (payload) => {
   const graphQlEndpoint = 'https://graphql-prod.deso.com/graphql'
   axios.post(graphQlEndpoint, payload)

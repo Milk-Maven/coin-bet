@@ -4,7 +4,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { getBet, makeBet } from './deso.js';
 import { PostEntryResponse } from 'deso-protocol';
-import { BetGet, betCreateValidation, betGetValidation, } from './validation.js';
 
 
 // Get the type of the Zod object
