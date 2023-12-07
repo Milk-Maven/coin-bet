@@ -1,7 +1,7 @@
 import * as deso from 'deso-protocol';
 import axios from 'axios';
 import dotenv from 'dotenv'
-import { BetCreate, BetGet } from './validation.js';
+import { BetCreate, BetGet } from '../shared/validators.js';
 import { getBetQl } from './graphQl.js';
 // The Golden Calf (project name 100%); 
 dotenv.config();
@@ -51,8 +51,8 @@ export const makeBet = async (bet: BetCreate): Promise<void> => {
   console.log(success)
 }
 
+const selectedNodePath = 'https://node.deso.org/api/v0/'
 export const submitPost = (req: Partial<deso.SubmitPostRequest>): Promise<deso.SubmitPostResponse> => {
-  const selectedNodePath = 'https://node.deso.org/api/v0/'
   const transactionEndpoint = 'submit-post'
   const post = axios.post(selectedNodePath + transactionEndpoint, {
     MinFeeRateNanosPerKB: 1500,
@@ -69,7 +69,6 @@ export const submitPost = (req: Partial<deso.SubmitPostRequest>): Promise<deso.S
 }
 
 export const submitTransaction = (req: deso.SubmitTransactionRequest): Promise<deso.SubmitTransactionResponse> => {
-  const selectedNodePath = 'https://node.deso.org/api/v0/'
   const transactionEndpoint = 'submit-transaction';
   return axios.post(selectedNodePath + transactionEndpoint, req).then(res => {
     return res.data as deso.SubmitTransactionResponse;

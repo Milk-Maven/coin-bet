@@ -39,7 +39,7 @@
   },
   "scripts": {
     "start": "npm run buildShared && node build/src/index.js",
-    "buildShared": "npx ts-node ../shared/script.ts",
+    "buildShared": "npm run build && npx ts-node ../shared/script.ts",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",

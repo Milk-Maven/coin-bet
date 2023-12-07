@@ -9,7 +9,6 @@ export const betCreateValidation = zod.z.object({
 
 export type BetCreate = zod.TypeOf<typeof betCreateValidation>;
 
-
 export const betGetValidation = zod.z.object({
   PostHashHex: zod.z.string(),
   OptionPostHashHex: zod.z.array(zod.z.string()),
@@ -18,3 +17,8 @@ export const betGetValidation = zod.z.object({
 });
 
 export type BetGet = zod.TypeOf<typeof betGetValidation>;
+
+export const endpoints = {
+  betNew: 'bet/new',
+  betGet: 'bet/get'
+}
