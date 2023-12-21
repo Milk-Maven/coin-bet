@@ -1,35 +1,46 @@
 import * as deso from 'deso-protocol';
 import axios from 'axios';
 import dotenv from 'dotenv'
-import { BetCreate, BetGet } from '../shared/validators.js';
-import { getBetQl } from './graphQl.js';
+import { OfferringCreateRequest, OfferingGetRequest } from '../shared/validators.js';
 // The Golden Calf (project name 100%); 
 dotenv.config();
 
 export type PostEntryResponse = deso.PostEntryResponse;
-export const getBet = async (bet: BetGet) => {
-  const res = getBetQl(bet)
-  return res;
+export const getOffering = async ({ PostHashHex, OptionPostHashHex, PosterPublicKeyBase58Check }: OfferingGetRequest) => {
+  console.log(OptionPostHashHex, PosterPublicKeyBase58Check, PostHashHex)
+  // const post = await deso.getSinglePost({ PostHashHex })
+  // BC1YLgJ6FWVz9GKQwktGmgRQ7DDFZj65ZhyxTGiSGnCGcYX4Hhx2VaY
+
 }
-export const makeBet = async (bet: BetCreate): Promise<void> => {
+export const makeOffering = async (bet: OfferringCreateRequest): Promise<void> => {
   const seedHex = process.env.APP_SEED_HEX;
   const keyPair = deso.keygen(seedHex)
   const pubKey = deso.publicKeyToBase58Check(keyPair.public)
-  const potKeyPair = deso.keygen();
-  const potPubKey = deso.publicKeyToBase58Check(potKeyPair.public);
-  const success = await submitPost({
+  type OfferingExtraDateRequest = {
+    endDate: string,
+    totalOptions: string
+  };
+  const PostExtraData: OfferingExtraDateRequest = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}` }
+  const success = await submitPost({ // submit offering 
     UpdaterPublicKeyBase58Check: pubKey,
     BodyObj: {
-      Body: bet.greeting,
+      Body: bet.event_description,
       VideoURLs: [],
       ImageURLs: []
     },
-    PostExtraData: { potPubKey },
+    PostExtraData,
   }).then(postTransaction => {
     return deso.signTx(postTransaction.TransactionHex, seedHex, { isDerivedKey: false })
   }).then(TransactionHex => submitTransaction({ TransactionHex })).then((a) => {
     // now that the transaction exists reply with the options 
-    return Promise.all(bet.outcomes.map(outcome => {
+    return Promise.all(bet.outcomes.map((outcome, i) => {
+
+      type OfferingOptionsExtraDataRequest = {
+        option: string
+      };
+      const PostExtraData: OfferingOptionsExtraDataRequest = {
+        option: `${i}`
+      }
       return submitPost(
         {
           UpdaterPublicKeyBase58Check: pubKey,
@@ -39,7 +50,7 @@ export const makeBet = async (bet: BetCreate): Promise<void> => {
             VideoURLs: [],
             ImageURLs: []
           },
-          PostExtraData: { potPubKey },
+          PostExtraData
         }
       )
     }))

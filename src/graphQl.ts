@@ -1,11 +1,11 @@
 
 import axios from 'axios';
-import { BetGet } from '../shared/validators.js';
+import { OfferingGetRequest } from '../shared/validators.js';
 const executeGraphQl = (payload) => {
   const graphQlEndpoint = 'https://graphql-prod.deso.com/graphql'
   axios.post(graphQlEndpoint, payload)
 }
-export const getBetQl = (getBet: BetGet) => {
+export const getBetQl = (getBet: OfferingGetRequest) => {
   const payload = {
     "operationName": "Transactions", "variables": {
       "first": 10, "orderBy": ["TIMESTAMP_DESC", "INDEX_IN_BLOCK_ASC"], "offset": 0,
