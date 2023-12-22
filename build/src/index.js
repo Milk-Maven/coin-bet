@@ -10,10 +10,6 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
-app.get('/', (r, res) => {
-    console.log(r);
-    res.send('Hello, this is a GET request!');
-});
 app.post('/' + endpoints.offeringCreate, function (req) {
     console.log('in');
     const validationResult = offeringCreateValidation.safeParse(req.body);

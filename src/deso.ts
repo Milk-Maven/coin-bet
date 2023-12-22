@@ -2,24 +2,18 @@ import * as deso from 'deso-protocol';
 import axios from 'axios';
 import dotenv from 'dotenv'
 import { OfferringCreateRequest, OfferingGetRequest } from '../shared/validators.js';
-// The Golden Calf (project name 100%); 
+import type { OfferingExtraDateRequest, OfferingOptionsExtraDataRequest } from '../shared/utils.js'
 dotenv.config();
 
 export type PostEntryResponse = deso.PostEntryResponse;
 export const getOffering = async ({ PostHashHex, OptionPostHashHex, PosterPublicKeyBase58Check }: OfferingGetRequest) => {
   console.log(OptionPostHashHex, PosterPublicKeyBase58Check, PostHashHex)
-  // const post = await deso.getSinglePost({ PostHashHex })
-  // BC1YLgJ6FWVz9GKQwktGmgRQ7DDFZj65ZhyxTGiSGnCGcYX4Hhx2VaY
 
 }
 export const makeOffering = async (bet: OfferringCreateRequest): Promise<void> => {
   const seedHex = process.env.APP_SEED_HEX;
   const keyPair = deso.keygen(seedHex)
   const pubKey = deso.publicKeyToBase58Check(keyPair.public)
-  type OfferingExtraDateRequest = {
-    endDate: string,
-    totalOptions: string
-  };
   const PostExtraData: OfferingExtraDateRequest = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}` }
   const success = await submitPost({ // submit offering 
     UpdaterPublicKeyBase58Check: pubKey,
@@ -35,9 +29,6 @@ export const makeOffering = async (bet: OfferringCreateRequest): Promise<void> =
     // now that the transaction exists reply with the options 
     return Promise.all(bet.outcomes.map((outcome, i) => {
 
-      type OfferingOptionsExtraDataRequest = {
-        option: string
-      };
       const PostExtraData: OfferingOptionsExtraDataRequest = {
         option: `${i}`
       }

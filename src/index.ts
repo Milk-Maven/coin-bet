@@ -14,10 +14,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 app.use(cors());
 
-app.get('/', (r, res) => {
-  console.log(r)
-  res.send('Hello, this is a GET request!');
-});
 
 app.post('/' + endpoints.offeringCreate, function(req: { body: OfferingGetRequest }) {
   console.log('in')
