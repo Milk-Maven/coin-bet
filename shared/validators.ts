@@ -8,7 +8,7 @@ export const offeringCreateValidation = z.object({
     z.string()
   ).refine((data) => {
     console.log(data)
-    return data[0].length && data[1].length
+    return data[0]?.length && data[1]?.length
   }, {
 
     message: 'At least two outcomes are required',
@@ -17,6 +17,7 @@ export const offeringCreateValidation = z.object({
     // Check if the value is a valid ISO string
     return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3}Z?)?$/.test(data);
   }, { message: 'Invalid end date format' }),
+  publicKey: z.string().min(10)
 });
 
 // Example usage

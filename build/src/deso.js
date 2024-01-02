@@ -1,18 +1,16 @@
 import * as deso from 'deso-protocol';
 import axios from 'axios';
 import dotenv from 'dotenv';
-// The Golden Calf (project name 100%); 
+import { PostType } from '../shared/utils.js';
 dotenv.config();
 export const getOffering = async ({ PostHashHex, OptionPostHashHex, PosterPublicKeyBase58Check }) => {
     console.log(OptionPostHashHex, PosterPublicKeyBase58Check, PostHashHex);
-    // const post = await deso.getSinglePost({ PostHashHex })
-    // BC1YLgJ6FWVz9GKQwktGmgRQ7DDFZj65ZhyxTGiSGnCGcYX4Hhx2VaY
 };
 export const makeOffering = async (bet) => {
     const seedHex = process.env.APP_SEED_HEX;
     const keyPair = deso.keygen(seedHex);
     const pubKey = deso.publicKeyToBase58Check(keyPair.public);
-    const PostExtraData = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}` };
+    const PostExtraData = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}`, postType: PostType.offering, creatorPublicKey: bet.publicKey };
     const success = await submitPost({
         UpdaterPublicKeyBase58Check: pubKey,
         BodyObj: {
@@ -46,6 +44,9 @@ export const makeOffering = async (bet) => {
         }));
     }).then(signatures => { return Promise.all(signatures.map(TransactionHex => submitTransaction({ TransactionHex }))); });
     console.log(success);
+};
+export const startWeek = () => {
+    // const PostExtraData: OfferingExtraDateRequest = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}`, postType: 'true', creatorPublicKey: bet.publicKey }
 };
 const selectedNodePath = 'https://node.deso.org/api/v0/';
 export const submitPost = (req) => {
