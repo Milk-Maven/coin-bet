@@ -11,13 +11,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 app.post('/' + endpoints.offeringCreate, function (req) {
-    console.log('in');
     const validationResult = offeringCreateValidation.safeParse(req.body);
     if (validationResult.success)
         makeOffering(validationResult.data);
 });
 app.post('/' + endpoints.offeringGet, function (req) {
-    console.log('in');
+    const validationResult = offeringGetValidation.safeParse({ PostHashHex: req.body.PostHashHex, OptionPostHashHex: req.body.PostExtraData.OptionPostHashHex, PosterPublicKeyBase58Check: req.body.PosterPublicKeyBase58Check });
+    if (validationResult.success)
+        getOffering(validationResult.data);
+});
+app.post('/' + endpoints.startWeek, function (req) {
     const validationResult = offeringGetValidation.safeParse({ PostHashHex: req.body.PostHashHex, OptionPostHashHex: req.body.PostExtraData.OptionPostHashHex, PosterPublicKeyBase58Check: req.body.PosterPublicKeyBase58Check });
     if (validationResult.success)
         getOffering(validationResult.data);
