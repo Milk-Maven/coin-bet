@@ -1,6 +1,6 @@
 
 import { TypeOf, z } from 'zod';
-import { PostType } from './utils';
+import { PostType } from './utils.js';
 
 export const offeringCreateValidation = z.object({
   event_description: z.string().min(10).refine((data) => data !== '', { message: 'Event description is required' }),

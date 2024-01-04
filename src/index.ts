@@ -2,10 +2,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { getOffering, makeOffering, startWeek } from './deso.js';
-import { PostEntryResponse } from 'deso-protocol';
-import { offeringGetValidation, offeringCreateValidation, OfferingGetRequest, startWeekValidation } from '../shared/validators.js'
+import { PostEntryResponse } from './deso.js';
+import { offeringGetValidation, offeringCreateValidation, OfferingGetRequest } from '../shared/validators.js'
 import { endpoints } from '../shared/utils.js'
+import { getOffering, makeOffering, startWeek } from './game.js';
+import { runTest } from './test.js';
 // Get the type of the Zod object
 
 const app = express();
@@ -13,6 +14,7 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 app.use(cors());
+
 
 
 app.post('/' + endpoints.offeringCreate, function(req: { body: OfferingGetRequest }) {
@@ -31,8 +33,27 @@ app.post('/' + endpoints.startWeek, function(req: { body: { description: string,
   startWeek(req.body)
 });
 // start the server
-app.listen(port, () => {
-  console.log('listening on port ', port)
+app.listen(port, async () => {
+  await testStartWeek()
 });
+
+
+export const testStartWeek = async () => {
+  runTest().then(res => {
+    console.log(res)
+
+  })
+  // const startWeek = startWeek({ init: true, description: 'asdf' })
+}
+
+export const testMakeOffering = async () => {
+
+  const res = await makeOffering({ event_description: 'asdfas', outcomes: ['adsf'], endDate: 'asdf', publicKey: 'asdf' }).catch(e => e.message)
+  // console.log('results:')
+  console.log(res)
+  // const startWeek = startWeek({ init: true, description: 'asdf' })
+}
+
+
 
 
