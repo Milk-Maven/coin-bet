@@ -1,3 +1,14 @@
-1/2/24
+1/3/24
+doing:
+add test to submit 10 offerings to latest post
+add test to apply varied likes (votes) 
+add test to create the next game phase (bidding)
+add test to take top 3 offerings and set them to the next phase post
+done:
 verify starting week works 
 verify starting another week works and ends the previous one
+1/2/24
+doing:
+verify starting week works 
+verify starting another week works and ends the previous one
+done:
