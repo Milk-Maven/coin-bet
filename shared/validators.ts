@@ -1,4 +1,3 @@
-
 import { TypeOf, z } from 'zod';
 import { PostType } from './utils.js';
 
@@ -49,66 +48,123 @@ export type StartWeekRequest = TypeOf<typeof startWeekValidation>;
 
 
 
-export const offeringExamples: Readonly<OfferringCreateRequest[]> = [
-  {
-    event_description: 'Marketing Workshop',
-    outcomes: ['Brand Awareness', 'Lead Generation'],
-    endDate: '2024-02-15T17:00:00Z',
-    publicKey: 'pqrst98765',
-  },
-  {
-    event_description: 'Artificial Intelligence Symposium',
-    outcomes: ['AI Applications', 'Ethical Considerations', 'Innovation'],
-    endDate: '2024-03-20T14:30:00',
-    publicKey: 'uvwxy12345',
-  },
-  {
-    event_description: 'Productivity Hackathon',
-    outcomes: ['Efficiency Boost', 'Creative Solutions', 'Team Collaboration'],
-    endDate: '2024-04-10T12:45:00Z',
-    publicKey: 'zabcd67890',
-  },
-  {
-    event_description: 'Web Development Summit',
-    outcomes: ['Front-end Technologies', 'Back-end Solutions', 'Security Practices'],
-    endDate: '2024-05-05T09:30:00',
-    publicKey: 'efghi23456',
-  },
-  {
-    event_description: 'Leadership Panel Discussion',
-    outcomes: ['Inspiring Leadership', 'Diversity and Inclusion', 'Effective Communication'],
-    endDate: '2024-06-18T16:15:00Z',
-    publicKey: 'jklmn34567',
-  },
-  {
-    event_description: 'Environmental Sustainability Forum',
-    outcomes: ['Climate Change Awareness', 'Green Initiatives', 'Policy Advocacy'],
-    endDate: '2024-07-22T11:00:00',
-    publicKey: 'opqrs78901',
-  },
-  {
-    event_description: 'Fitness and Nutrition Challenge',
-    outcomes: ['Healthy Habits', 'Nutritional Education', 'Fitness Achievements'],
-    endDate: '2024-08-30T13:45:00Z',
-    publicKey: 'tuvwx56789',
-  },
-  {
-    event_description: 'Cybersecurity Workshop',
-    outcomes: ['Data Protection', 'Cyber Threat Intelligence', 'Incident Response'],
-    endDate: '2024-09-12T15:30:00',
-    publicKey: 'yzabc12345',
-  },
-  {
-    event_description: 'Innovation Expo',
-    outcomes: ['Technology Showcases', 'Start-up Pitches', 'Investor Networking'],
-    endDate: '2024-10-05T10:15:00Z',
-    publicKey: 'defgh23456',
-  },
-  {
-    event_description: 'Project Management Bootcamp',
-    outcomes: ['Project Planning', 'Agile Methodologies', 'Stakeholder Management'],
-    endDate: '2024-11-08T18:00:00',
-    publicKey: 'ijklm78901',
-  },
-  // Add more examples as needed...
-];
+export const offeringExamples: Readonly<OfferringCreateRequest[]> = [{
+  event_description: "Norse Ragnarok - End of the World",
+  outcomes: ["Fimbulwinter", "Twilight of the Gods", "Serpent's Wrath"],
+  endDate: "2024-01-30T12:00:00Z",
+  publicKey: "PublicKey1",
+},
+{
+  event_description: "Mayan Apocalypse - End of the World",
+  outcomes: ["Solar Cataclysm", "Harmony Restoration", "Earthly Transformation"],
+  endDate: "2024-02-28T12:00:00Z",
+  publicKey: "PublicKey2",
+},
+{
+  event_description: "Greek Titanomachy - End of the World",
+  outcomes: ["Olympian Triumph", "World Renewal", "Chaos Unleashed"],
+  endDate: "2024-03-31T12:00:00Z",
+  publicKey: "PublicKey3",
+},
+{
+  event_description: "Hindu Kali Yuga - End of the World",
+  outcomes: ["Cosmic Rebirth", "Dharma Restoration", "Eternal Strife"],
+  endDate: "2024-04-30T12:00:00Z",
+  publicKey: "PublicKey4",
+},
+{
+  event_description: "Egyptian Apocalypse - End of the World",
+  outcomes: ["Judgment of Osiris", "Rebirth of Ra", "Anarchy of Set"],
+  endDate: "2024-05-31T12:00:00Z",
+  publicKey: "PublicKey5",
+},
+{
+  event_description: "Norse Fimbulwinter - End of the World",
+  outcomes: ["Ice Age", "Eternal Darkness", "Frost Giants' Dominion"],
+  endDate: "2024-06-30T12:00:00Z",
+  publicKey: "PublicKey6",
+},
+{
+  event_description: "Aztec Ollin Tonatiuh - End of the World",
+  outcomes: ["Solar Cataclysm", "Earthquakes", "Age of Rebirth"],
+  endDate: "2024-07-31T12:00:00Z",
+  publicKey: "PublicKey7",
+},
+{
+  event_description: "Japanese Kurozuka - End of the World",
+  outcomes: ["Demon Onslaught", "Celestial Chaos", "Spiritual Harmony"],
+  endDate: "2024-08-31T12:00:00Z",
+  publicKey: "PublicKey8",
+},
+{
+  event_description: "Celtic Prophecy - End of the World",
+  outcomes: ["Elemental Upheaval", "Otherworldly Invasion", "Druidic Renewal"],
+  endDate: "2024-09-30T12:00:00Z",
+  publicKey: "PublicKey9",
+},
+{
+  event_description: "Chinese Apocalyptic Fire - End of the World",
+  outcomes: ["Inferno", "Dragon's Fury", "Benevolent Phoenix"],
+  endDate: "2024-10-31T12:00:00Z",
+  publicKey: "PublicKey10",
+},
+{
+  event_description: "Babylonian Tiamat's Wrath - End of the World",
+  outcomes: ["Cosmic Chaos", "Beastly Onslaught", "Marduk's Victory"],
+  endDate: "2024-11-30T12:00:00Z",
+  publicKey: "PublicKey11",
+},
+{
+  event_description: "Inuit Qivittoq's Return - End of the World",
+  outcomes: ["Spiritual Reckoning", "Arctic Desolation", "Ancestral Blessing"],
+  endDate: "2024-12-31T12:00:00Z",
+  publicKey: "PublicKey12",
+},
+{
+  event_description: "Polynesian Rangi and Papa - End of the World",
+  outcomes: ["Primordial Chaos", "Island Catastrophe", "Celestial Harmony"],
+  endDate: "2025-01-31T12:00:00Z",
+  publicKey: "PublicKey13",
+},
+{
+  event_description: "Mesoamerican Xiuhtecuhtli's Rage - End of the World",
+  outcomes: ["Solar Devastation", "Volcanic Eruption", "Quetzalcoatl's Blessing"],
+  endDate: "2025-02-28T12:00:00Z",
+  publicKey: "PublicKey14",
+},
+{
+  event_description: "Sumerian Kur's Awakening - End of the World",
+  outcomes: ["Underworld Unleashed", "Eternal Night", "Enlil's Justice"],
+  endDate: "2025-03-31T12:00:00Z",
+  publicKey: "PublicKey15",
+},
+{
+  event_description: "African Nyambe's Judgment - End of the World",
+  outcomes: ["Celestial Tribunal", "Nature's Wrath", "Ancestral Blessings"],
+  endDate: "2025-04-30T12:00:00Z",
+  publicKey: "PublicKey16",
+},
+{
+  event_description: "Roman Prodigium Aquilae - End of the World",
+  outcomes: ["Eagle's Prophecy", "Imperial Downfall", "Pax Romana Resurrection"],
+  endDate: "2025-05-31T12:00:00Z",
+  publicKey: "PublicKey17",
+},
+{
+  event_description: "Hawaiian Pele's Fury - End of the World",
+  outcomes: ["Volcanic Apocalypse", "Oceanic Catastrophe", "Lava Goddess's Blessing"],
+  endDate: "2025-06-30T12:00:00Z",
+  publicKey: "PublicKey18",
+},
+{
+  event_description: "Slavic Nav - End of the World",
+  outcomes: ["World Tree's Collapse", "Slavic Deities' Clash", "Slavic Renaissance"],
+  endDate: "2025-07-31T12:00:00Z",
+  publicKey: "PublicKey19",
+},
+{
+  event_description: "Aboriginal Dreamtime's Unraveling - End of the World",
+  outcomes: ["Dreamtime Dissolution", "Spiritual Anarchy", "Nature's Rebirth"],
+  endDate: "2025-08-31T12:00:00Z",
+  publicKey: "PublicKey20",
+}];

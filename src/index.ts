@@ -4,7 +4,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { GoldenCalfBot } from './bots/goldenCalf.js';
 import { game, getSnapshot } from './bots/static.js';
 
 

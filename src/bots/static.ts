@@ -1,9 +1,10 @@
 
 import DB from 'simple-json-db';
-import { ConsumerBot, ConsumerEvent, Offering } from './consumer.js';
-import { CalfEvent, GoldenCalfBot, SnapShot } from './goldenCalf.js';
+import { ConsumerBot } from './consumer.js';
+import { GoldenCalfBot } from './goldenCalf.js';
 import { offeringExamples } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
+import { Bid, RoundEvent, RunEnd, RunPay, RunSnapShot } from '../../shared/utils.js';
 const db = new DB("./db.json", { syncOnWrite: true });
 export const getResultsSnapshot = async (PostHashHex: string) => {
   console.log(PostHashHex)
@@ -42,7 +43,6 @@ export function generateConsumerBots(goldenCalfBot: GoldenCalfBot) {
   });
 }
 
-type Bid = { message: string, payload: { offerings: ConsumerEvent<Offering>[], currentWeek: CalfEvent<PostEntryResponse> } }
 async function makeOffering(amount: number): Promise<RoundEvent<Bid>> {
   const goldenCalfBot = new GoldenCalfBot()
   const bots = getConsumerBots(amount)
@@ -66,24 +66,21 @@ async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
   return { res: { message: 'week started successfully', payload: start.res.startedWeek } }
 }
 
-type RunEnd = { message: string, payload: {} }
 async function endWeek(): Promise<RoundEvent<RunEnd>> {
   const calf = new GoldenCalfBot()
   const retire = await calf.retireCurrentWeek()
 
   if (retire.err) return { err: retire.err }
 
-  return { res: { message: '', payload: {} } }
+  return { res: { message: '', payload: { end: '' } } }
 }
 
-type RunPay = { message: string, payload: {} }
 export async function payWeek(): Promise<RoundEvent<RunPay>> {
   // const calf = new GoldenCalfBot()
 
-  return { res: { message: '', payload: {} } }
+  return { res: { message: '', payload: { payments: [] } } }
 }
 
-type RunSnapShot = { message: string, payload: SnapShot }
 export async function getSnapshot(): Promise<RoundEvent<RunSnapShot>> {
   const calf = new GoldenCalfBot()
   const snapshot = await calf.getSnapshot()
@@ -92,7 +89,6 @@ export async function getSnapshot(): Promise<RoundEvent<RunSnapShot>> {
 }
 
 
-export type RoundEvent<Response> = { res?: Response, err?: string }
 
 
 

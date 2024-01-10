@@ -1,17 +1,11 @@
-import { PostType, StartWeekRequest } from '../../shared/utils.js';
+import { PostType, StartWeekRequest, Start, CalfEvent, Retire, SnapShot } from '../../shared/utils.js';
 import { OfferringCreateRequest } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
 import { BaseBot } from './bot.js';
 import * as deso from 'deso-protocol';
 
 import dotenv from 'dotenv'
-import { RoundEvent } from './static.js';
 dotenv.config();
-export type CalfEvent<Response> = RoundEvent<Response>
-type Retire = { retiredWeek: PostEntryResponse, nextCurrentDate: string }
-export type SnapShot = { currentWeek: PostEntryResponse, offerings: PostEntryResponse[], sacrifice: PostEntryResponse }
-
-type Start = { startedWeek: PostEntryResponse, }
 export class GoldenCalfBot extends BaseBot {
   constructor() {
     super({ seedHex: process.env.APP_SEED_HEX as string })

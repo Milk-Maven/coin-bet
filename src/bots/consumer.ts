@@ -1,7 +1,6 @@
-import { OfferingExtraDateRequest, OfferingOptionsExtraDataRequest, PostType } from "../../shared/utils.js";
+import { OfferingExtraDateRequest, OfferingOptionsExtraDataRequest, PostType, RoundEvent } from "../../shared/utils.js";
 import { OfferringCreateRequest } from "../../shared/validators.js";
 import { BaseBot } from "./bot.js";
-import { RoundEvent } from "./static.js";
 import { PostEntryResponse } from "../deso.js";
 
 export type ConsumerEvent<Response> = RoundEvent<Response>
@@ -15,17 +14,11 @@ export class ConsumerBot extends BaseBot {
         Body: bet.event_description,
         PostExtraData,
       })
-      console.log(offering)
       await this.waitForSeconds(1)
       const offeringOptions = await Promise.all(bet.outcomes.map(async (outcome, i) => {
         const PostExtraData: OfferingOptionsExtraDataRequest = {
           option: `${i}`
         }
-        console.log({
-          ParentStakeID: offering.PostHashHex,
-          Body: outcome,
-          PostExtraData
-        })
         return await this.submitPost(
           {
 
@@ -39,10 +32,7 @@ export class ConsumerBot extends BaseBot {
       return { res: { offering, offeringOptions } }
 
     } catch (e) {
-      console.log(Object.keys(e))
-      console.log(e.message)
-      console.log(e.response?.data)
-      return { err: 'eee' }
+      return { err: e }
     }
 
   }
