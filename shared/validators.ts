@@ -49,4 +49,66 @@ export type StartWeekRequest = TypeOf<typeof startWeekValidation>;
 
 
 
-
+export const offeringExamples: Readonly<OfferringCreateRequest[]> = [
+  {
+    event_description: 'Marketing Workshop',
+    outcomes: ['Brand Awareness', 'Lead Generation'],
+    endDate: '2024-02-15T17:00:00Z',
+    publicKey: 'pqrst98765',
+  },
+  {
+    event_description: 'Artificial Intelligence Symposium',
+    outcomes: ['AI Applications', 'Ethical Considerations', 'Innovation'],
+    endDate: '2024-03-20T14:30:00',
+    publicKey: 'uvwxy12345',
+  },
+  {
+    event_description: 'Productivity Hackathon',
+    outcomes: ['Efficiency Boost', 'Creative Solutions', 'Team Collaboration'],
+    endDate: '2024-04-10T12:45:00Z',
+    publicKey: 'zabcd67890',
+  },
+  {
+    event_description: 'Web Development Summit',
+    outcomes: ['Front-end Technologies', 'Back-end Solutions', 'Security Practices'],
+    endDate: '2024-05-05T09:30:00',
+    publicKey: 'efghi23456',
+  },
+  {
+    event_description: 'Leadership Panel Discussion',
+    outcomes: ['Inspiring Leadership', 'Diversity and Inclusion', 'Effective Communication'],
+    endDate: '2024-06-18T16:15:00Z',
+    publicKey: 'jklmn34567',
+  },
+  {
+    event_description: 'Environmental Sustainability Forum',
+    outcomes: ['Climate Change Awareness', 'Green Initiatives', 'Policy Advocacy'],
+    endDate: '2024-07-22T11:00:00',
+    publicKey: 'opqrs78901',
+  },
+  {
+    event_description: 'Fitness and Nutrition Challenge',
+    outcomes: ['Healthy Habits', 'Nutritional Education', 'Fitness Achievements'],
+    endDate: '2024-08-30T13:45:00Z',
+    publicKey: 'tuvwx56789',
+  },
+  {
+    event_description: 'Cybersecurity Workshop',
+    outcomes: ['Data Protection', 'Cyber Threat Intelligence', 'Incident Response'],
+    endDate: '2024-09-12T15:30:00',
+    publicKey: 'yzabc12345',
+  },
+  {
+    event_description: 'Innovation Expo',
+    outcomes: ['Technology Showcases', 'Start-up Pitches', 'Investor Networking'],
+    endDate: '2024-10-05T10:15:00Z',
+    publicKey: 'defgh23456',
+  },
+  {
+    event_description: 'Project Management Bootcamp',
+    outcomes: ['Project Planning', 'Agile Methodologies', 'Stakeholder Management'],
+    endDate: '2024-11-08T18:00:00',
+    publicKey: 'ijklm78901',
+  },
+  // Add more examples as needed...
+];
