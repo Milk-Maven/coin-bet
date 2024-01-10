@@ -9,6 +9,8 @@ import { RoundEvent } from './static.js';
 dotenv.config();
 export type CalfEvent<Response> = RoundEvent<Response>
 type Retire = { retiredWeek: PostEntryResponse, nextCurrentDate: string }
+export type SnapShot = { currentWeek: PostEntryResponse, offerings: PostEntryResponse[], sacrifice: PostEntryResponse }
+
 type Start = { startedWeek: PostEntryResponse, }
 export class GoldenCalfBot extends BaseBot {
   constructor() {
@@ -79,6 +81,11 @@ export class GoldenCalfBot extends BaseBot {
       PostExtraData: { ...res.PostExtraData, latestWeek: 'false' }
     }).then(() => { return response })
       .catch(() => { return { err: 'retiring latest week failed' } })
+  }
+  public async getSnapshot(): Promise<CalfEvent<SnapShot>> {
+    const currentWeek = await this.getCurrentWeek()
+    currentWeek.res
+    return { res: { currentWeek: {} as PostEntryResponse, offerings: [], sacrifice: {} as PostEntryResponse } }
   }
 }
 

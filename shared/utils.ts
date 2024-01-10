@@ -1,8 +1,11 @@
 
 export const endpoints = {
   makeOffering: 'offering/make',
-  offeringGet: 'offering/get',
-  startWeek: 'game/start'
+  start: 'game/start',
+  end: 'game/end',
+  snapshot: 'game/snapshot',
+  pay: 'game/pay'
+
 }
 
 export function checkCondition(condition: boolean, errorMessage: string): void {

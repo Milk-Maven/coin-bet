@@ -1,7 +1,7 @@
 
 import DB from 'simple-json-db';
 import { ConsumerBot, ConsumerEvent, Offering } from './consumer.js';
-import { CalfEvent, GoldenCalfBot } from './goldenCalf.js';
+import { CalfEvent, GoldenCalfBot, SnapShot } from './goldenCalf.js';
 import { offeringExamples } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
 const db = new DB("./db.json", { syncOnWrite: true });
@@ -65,6 +65,35 @@ async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
 
   return { res: { message: 'week started successfully', payload: start.res.startedWeek } }
 }
+
+type RunEnd = { message: string, payload: {} }
+async function endWeek(): Promise<RoundEvent<RunEnd>> {
+  const calf = new GoldenCalfBot()
+  const retire = await calf.retireCurrentWeek()
+
+  if (retire.err) return { err: retire.err }
+
+  return { res: { message: '', payload: {} } }
+}
+
+type RunPay = { message: string, payload: {} }
+export async function payWeek(): Promise<RoundEvent<RunPay>> {
+  // const calf = new GoldenCalfBot()
+
+  return { res: { message: '', payload: {} } }
+}
+
+type RunSnapShot = { message: string, payload: SnapShot }
+export async function getSnapshot(): Promise<RoundEvent<RunSnapShot>> {
+  const calf = new GoldenCalfBot()
+  const snapshot = await calf.getSnapshot()
+  if (snapshot.err) return { err: snapshot.err }
+  return { res: { message: 'get snapshot successful', payload: snapshot.res } }
+}
+
+
 export type RoundEvent<Response> = { res?: Response, err?: string }
 
-export const game = { startWeek, makeOffering }
+
+
+export const game = { startWeek, makeOffering, getSnapshot, endWeek, payWeek }

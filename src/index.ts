@@ -4,8 +4,8 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { makeOffering, startWeek, } from './bots/static.js';
 import { GoldenCalfBot } from './bots/goldenCalf.js';
+import { game, getSnapshot } from './bots/static.js';
 
 
 dotenv.config();
@@ -57,9 +57,9 @@ app.use(cors());
 // });
 
 
-app.post('/' + endpoints.startWeek, async function(req: { body: { description: string, init?: boolean }, }, res) {
+app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
   // add zod valdaation
-  const response = await startWeek(req.body)
+  const response = await game.startWeek(req.body)
   if (response.res) {
     return res.status(200).json({ ...response.res, });
   }
@@ -69,7 +69,39 @@ app.post('/' + endpoints.startWeek, async function(req: { body: { description: s
 });
 app.post('/' + endpoints.makeOffering, async function(req: { body: { amount: number, mock?: boolean }, }, res) {
   // add zod validation
-  const response = await makeOffering(req.body.amount)
+  const response = await game.makeOffering(req.body.amount)
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    res.status(404).json({ err: response.err });
+  }
+});
+app.post('/' + endpoints.snapshot, async function(_req, res) {
+  // add zod validation
+  const response = await game.getSnapshot()
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    res.status(404).json({ err: response.err });
+  }
+});
+
+app.post('/' + endpoints.end, async function(_req, res) {
+  // add zod validation
+  const response = await game.endWeek()
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    res.status(404).json({ err: response.err });
+  }
+});
+
+app.post('/' + endpoints.pay, async function(_req, res) {
+  // add zod validation
+  const response = await game.payWeek()
   if (response.res) {
     return res.status(200).json({ ...response.res, });
   }
@@ -79,6 +111,8 @@ app.post('/' + endpoints.makeOffering, async function(req: { body: { amount: num
 });
 // start the server
 app.listen(port, async () => {
+  const snapshot = await getSnapshot()
+  console.log(snapshot)
 
 
 })
