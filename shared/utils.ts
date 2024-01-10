@@ -1,6 +1,6 @@
 
 export const endpoints = {
-  offeringCreate: 'offering/create',
+  makeOffering: 'offering/make',
   offeringGet: 'offering/get',
   startWeek: 'game/start'
 }

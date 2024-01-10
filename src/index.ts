@@ -2,9 +2,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-// import { endpoints } from '../shared/utils.js';
+import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { consumersMakeSuggestions, } from './bots/static.js';
+import { makeOffering, startWeek, } from './bots/static.js';
 import { GoldenCalfBot } from './bots/goldenCalf.js';
 
 
@@ -36,50 +36,54 @@ app.use(cors());
 // const validationResult = offeringCreateValidation.extend({ ParentStakeID: z.string() }).safeParse(req.body); // add validation
 // if (validationResult.success) consumerBot.makeOffering(validationResult.data)
 // });
-
-
-
-// app.post('/' + endpoints.startWeek, function(req: { body: { description: string, init?: boolean } }) {
-// goldenCalfBot.startWeek({ 'description': 'start week' }) //TODO add validations back in
-// startWeek(req.body)
+// app.get('/success', (req, res) => {
+//   res.status(200).json({ success: true, message: 'Request successful' });
 // });
+//
+// // Example route for error
+// app.get('/error', (req, res) => {
+//   res.status(500).json({ success: false, message: 'Internal Server Error' });
+// });
+//
+// // Handling 404 Not Found
+// app.use((req, res) => {
+//   res.status(404).json({ success: false, message: 'Not Found' });
+// });
+//
+// // Error handler middleware
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).json({ success: false, message: 'Internal Server Error' });
+// });
+
+
+app.post('/' + endpoints.startWeek, async function(req: { body: { description: string, init?: boolean }, }, res) {
+  // add zod valdaation
+  const response = await startWeek(req.body)
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    res.status(404).json({ err: response.err });
+  }
+});
+app.post('/' + endpoints.makeOffering, async function(req: { body: { amount: number, mock?: boolean }, }, res) {
+  // add zod validation
+  const response = await makeOffering(req.body.amount)
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    res.status(404).json({ err: response.err });
+  }
+});
 // start the server
 app.listen(port, async () => {
-  // const date = new Date()
-  const goldenCalf = new GoldenCalfBot()
-  const currentWeek = await goldenCalf.getCurrentWeek()
-  console.log('1')
-  if (currentWeek.err) {
-    console.log(currentWeek.err)
-  };
-  // const start = await startWeek({ 'description': `new Round ${Number(currentWeek.res.PostExtraData.currentWeek) + 1} date is ${date.toString()}` })
-  // console.log(start)
-  // if (start.err) {
-  //   console.log(start.err)
-  // }
-  const offer = await consumersMakeSuggestions(1)
-  console.log(offer)
-  // console.log('3')
-  // console.log(offer)
 
 
 })
 
 
-export const testStartWeek = async () => {
-  // runTest().then(res => {
-  //   console.log(res)
-  //
-  // })
-  // const startWeek = startWeek({ init: true, description: 'asdf' })
-}
-
-export const testMakeOffering = async () => {
-  // const res = await makeOffering({ event_description: 'asdfas', outcomes: ['adsf'], endDate: 'asdf', publicKey: 'asdf' }).catch(e => e.message)
-  // console.log('results:')
-  // console.log(res)
-  // const startWeek = startWeek({ init: true, description: 'asdf' })
-}
 
 
 

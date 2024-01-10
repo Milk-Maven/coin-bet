@@ -43,7 +43,7 @@ export function generateConsumerBots(goldenCalfBot: GoldenCalfBot) {
 }
 
 type Bid = { message: string, payload: { offerings: ConsumerEvent<Offering>[], currentWeek: CalfEvent<PostEntryResponse> } }
-export async function consumersMakeSuggestions(amount: number): Promise<RoundEvent<Bid>> {
+async function makeOffering(amount: number): Promise<RoundEvent<Bid>> {
   const goldenCalfBot = new GoldenCalfBot()
   const bots = getConsumerBots(amount)
   const currentWeek = await goldenCalfBot.getCurrentWeek()
@@ -54,7 +54,7 @@ export async function consumersMakeSuggestions(amount: number): Promise<RoundEve
 }
 
 type RunStartWeek = { message: string, payload: PostEntryResponse }
-export async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
+async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
   const calf = new GoldenCalfBot()
   const retire = await calf.retireCurrentWeek()
   if (retire.err) return { err: retire.err }
@@ -66,3 +66,5 @@ export async function startWeek({ description }): Promise<RoundEvent<RunStartWee
   return { res: { message: 'week started successfully', payload: start.res.startedWeek } }
 }
 export type RoundEvent<Response> = { res?: Response, err?: string }
+
+export const game = { startWeek, makeOffering }
