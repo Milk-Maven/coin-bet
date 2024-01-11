@@ -2,9 +2,9 @@
 import DB from 'simple-json-db';
 import { ConsumerBot } from './consumer.js';
 import { GoldenCalfBot } from './goldenCalf.js';
-import { offeringExamples } from '../../shared/validators.js';
+import { OfferringCreateRequest } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
-import { Bid, RoundEvent, RunEnd, RunPay, RunSnapShot } from '../../shared/utils.js';
+import { RunOffering, RoundEvent, RunEnd, RunPay, RunSnapShot } from '../../shared/utils.js';
 const db = new DB("./db.json", { syncOnWrite: true });
 export const getResultsSnapshot = async (PostHashHex: string) => {
   console.log(PostHashHex)
@@ -43,14 +43,12 @@ export function generateConsumerBots(goldenCalfBot: GoldenCalfBot) {
   });
 }
 
-async function makeOffering(amount: number): Promise<RoundEvent<Bid>> {
+async function makeOffering(offerringCreateRequest: OfferringCreateRequest): Promise<RoundEvent<RunOffering>> {
   const goldenCalfBot = new GoldenCalfBot()
-  const bots = getConsumerBots(amount)
-  const currentWeek = await goldenCalfBot.getCurrentWeek()
-  const offerings = await Promise.all(bots.map(async (bot, i) => {
-    return await bot.makeOffering({ ParentStakeID: currentWeek.res.PostHashHex, event_description: offeringExamples[i].event_description, publicKey: bot.pubKey, endDate: offeringExamples[i].endDate, outcomes: offeringExamples[i].outcomes })
-  }));
-  return { res: { message: 'offerings succuessfully made', payload: { offerings, currentWeek } } }
+  const { res, err } = await goldenCalfBot.makeOffering({ event_description: offerringCreateRequest.event_description, publicKey: goldenCalfBot.pubKey, endDate: offerringCreateRequest.endDate, outcomes: offerringCreateRequest.outcomes })
+  if (err) return { err }
+  const { offering, offeringOptions } = res
+  return { res: { message: 'offerings succuessfully made', payload: { offering, offeringOptions } } }
 }
 
 type RunStartWeek = { message: string, payload: PostEntryResponse }
@@ -60,7 +58,6 @@ async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
   if (retire.err) return { err: retire.err }
 
   const start = await calf.startWeek({ description: description }, retire.res.nextCurrentDate)
-  console.log(start)
   if (start.err) return { err: start.err }
 
   return { res: { message: 'week started successfully', payload: start.res.startedWeek } }

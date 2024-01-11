@@ -14,7 +14,7 @@ export class BaseBot {
 
   public selectedNodePath = 'https://node.deso.org/api/v0/'
 
-  public submitPost = function(req: Partial<deso.SubmitPostRequest> & { Body: string }): Promise<deso.PostEntryResponse> {
+  public submitPost = function(req: Partial<deso.SubmitPostRequest> & { Body?: string }): Promise<deso.PostEntryResponse> {
     let submitPostResponse: deso.SubmitPostResponse
     const transactionEndpoint = 'submit-post'
     const { Body, ...extra } = req
@@ -34,7 +34,6 @@ export class BaseBot {
       InTutorial: false,
       IsFrozen: false, ...extra
     }).then(res => {
-      console.log(Object.keys(res))
       submitPostResponse = res.data as deso.SubmitPostResponse;
       return submitPostResponse
     }).then((res) => {
@@ -82,6 +81,7 @@ export class BaseBot {
     }).then(({ TransactionHex }) => this.signTransaction({ TransactionHex })).then((res) => this.submitTransaction(res))
     return res;
   }
+
   public getInfo = async function() {
     const transactionEndpoint = 'get-single-profile';
     const res: deso.GetSingleProfileResponse = await axios.post(this.selectedNodePath + transactionEndpoint, {

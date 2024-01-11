@@ -4,8 +4,8 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { game, getSnapshot } from './bots/static.js';
-
+import { game } from './bots/static.js';
+import { OfferringCreateRequest, offeringExamples } from '../shared/validators.js';
 
 dotenv.config();
 
@@ -22,9 +22,7 @@ dotenv.config();
 const app = express();
 const port = 3000;
 
-// const goldenCalfBot = new GoldenCalfBot({ seedHex: process.env.APP_SEED_HEX as string })
 //
-// const consumerBot = new ConsumerBot({ seedHex: process.env.APP_SEED_HEX as string })
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 app.use(cors());
@@ -63,19 +61,21 @@ app.post('/' + endpoints.start, async function(req: { body: { description: strin
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    res.status(404).json({ err: response.err });
+    return res.status(404).json({ err: response.err });
   }
 });
-app.post('/' + endpoints.makeOffering, async function(req: { body: { amount: number, mock?: boolean }, }, res) {
+
+app.post('/' + endpoints.makeOffering, async function(req: { body: OfferringCreateRequest }, res) {
   // add zod validation
-  const response = await game.makeOffering(req.body.amount)
+  const response = await game.makeOffering(req.body)
   if (response.res) {
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    res.status(404).json({ err: response.err });
+    return res.status(404).json({ err: response.err });
   }
 });
+
 app.post('/' + endpoints.snapshot, async function(_req, res) {
   // add zod validation
   const response = await game.getSnapshot()
@@ -94,7 +94,7 @@ app.post('/' + endpoints.end, async function(_req, res) {
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    res.status(404).json({ err: response.err });
+    return res.status(404).json({ err: response.err });
   }
 });
 
@@ -105,13 +105,18 @@ app.post('/' + endpoints.pay, async function(_req, res) {
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    res.status(404).json({ err: response.err });
+    return res.status(404).json({ err: response.err });
   }
 });
 // start the server
 app.listen(port, async () => {
-  const snapshot = await getSnapshot()
-  console.log(snapshot)
+  console.log('listening on port' + port)
+  const res = await game.makeOffering(offeringExamples[0])
+
+  console.log('res')
+  console.log(res)
+  // const snapshot = await getSnapshot()
+  // console.log(snapshot)
 
 
 })
