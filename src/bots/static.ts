@@ -1,10 +1,19 @@
-
 import DB from 'simple-json-db';
 import { ConsumerBot } from './consumer.js';
 import { GoldenCalfBot } from './goldenCalf.js';
-import { OfferringCreateRequest } from '../../shared/validators.js';
+import { OfferringCreateRequest, SacrificeDesoRequest, SacrificeDiamondRequest, } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
-import { RunOffering, RoundEvent, RunEnd, RunPay, RunSnapShot } from '../../shared/utils.js';
+import { RunOffering, RoundEvent, RunEnd, RunPay, RunMakeSacrifice, } from '../../shared/utils.js';
+import { UtilBot } from './util.js';
+import { getCalfState } from './calfState.js';
+
+export type ConsumerBotMetaData = {
+  DESOBalanceNanos: number;
+  seedHex: string;
+  PublicKeyBase58Check: string;
+  Description: string;
+  Username: string;
+};
 const db = new DB("./db.json", { syncOnWrite: true });
 export const getResultsSnapshot = async (PostHashHex: string) => {
   console.log(PostHashHex)
@@ -16,13 +25,14 @@ export function desoToNanos(deso: number) {
 
   return nanos;
 }
-type ConsumerBotMetaData = {
-  DESOBalanceNanos: number;
-  seedHex: string;
-  PublicKeyBase58Check: string;
-  Description: string;
-  Username: string;
-};
+
+// export type calfState = {
+//   calfProfile: string;
+//   calfWeek: string;
+//   previousWeeks: {
+//     [weekNumber: string]: string
+//   },
+// }
 
 export function getConsumerBots(amount: number): ConsumerBot[] {
   const bots: ConsumerBotMetaData[] = db.get('bots');
@@ -54,12 +64,13 @@ async function makeOffering(offerringCreateRequest: OfferringCreateRequest): Pro
 type RunStartWeek = { message: string, payload: PostEntryResponse }
 async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
   const calf = new GoldenCalfBot()
+  console.log('here')
   const retire = await calf.retireCurrentWeek()
   if (retire.err) return { err: retire.err }
 
   const start = await calf.startWeek({ description: description }, retire.res.nextCurrentDate)
   if (start.err) return { err: start.err }
-
+  await calf.setProfileState({ calfWeek: { [retire.res.nextCurrentDate]: start.res.startedWeek.PostHashHex } })
   return { res: { message: 'week started successfully', payload: start.res.startedWeek } }
 }
 
@@ -78,15 +89,52 @@ export async function payWeek(): Promise<RoundEvent<RunPay>> {
   return { res: { message: '', payload: { payments: [] } } }
 }
 
-export async function getSnapshot(): Promise<RoundEvent<RunSnapShot>> {
-  const calf = new GoldenCalfBot()
-  const snapshot = await calf.getSnapshot()
-  if (snapshot.err) return { err: snapshot.err }
-  return { res: { message: 'get snapshot successful', payload: snapshot.res } }
+export async function gameState() {
+  const payload = await getCalfState({ PublicKeyBase58Check: new GoldenCalfBot().pubKey })
+  return { res: { message: 'get snapshot successful', payload } }
 }
 
+// Good
+export async function makeSacrificeWithDiamonds(req: SacrificeDiamondRequest): Promise<RoundEvent<RunMakeSacrifice>> {
+  const calf = new GoldenCalfBot()
+  const consumer = UtilBot
+  await consumer.submitTransaction(req.TransactionHex)
+  const diamondSender = await consumer.getDiamondsSendersForPost({ PostHashHex: req.DiamondPostHashHex }).then(
+    d => d.find(d => d.DiamondSenderProfile.PublicKeyBase58Check === req.SenderPublicKeyBase58Check))
+  let offering = await consumer.getSinglePost({ PostHashHex: req.DiamondPostHashHex })
+  const sacrifice = { [req.SenderPublicKeyBase58Check]: diamondSender }
+  const PostExtraData = offering.PostExtraData = {
+    ...offering.PostExtraData,
+    diamonds: {
+      ...JSON.parse(offering.PostExtraData?.diamonds),
+      ...sacrifice
+    }
+  }
+  // const goldenCalf 
+  await calf.submitPost({ PostHashHexToModify: req.DiamondPostHashHex, Body: offering.Body, PostExtraData, goldenCalf: {} })
+  offering = await consumer.getSinglePost({ PostHashHex: req.DiamondPostHashHex })
+  return { res: { message: 'made sacrifice successfully', payload: { updatedOffering: offering } } }
+}
+//  Good
+export async function makeSacrificeWithDeso(req: SacrificeDesoRequest) {
+  const calf = new GoldenCalfBot()
+  const consumer = UtilBot
+  await consumer.submitTransaction(req.TransactionHex)
+  let offering = await consumer.getSinglePost({ PostHashHex: req.PostHashHax })
+  const sacrifice = { [req.SenderPublicKeyBase58Check]: { AmountNanos: req.AmountNanos } }
+  const PostExtraData = offering.PostExtraData = {
+    ...offering.PostExtraData,
+    deso: {
+      ...JSON.parse(offering.PostExtraData?.deso),
+      ...sacrifice
+    }
+  }
+  await calf.submitPost({ PostHashHexToModify: req.PostHashHax, Body: offering.Body, PostExtraData, goldenCalf: {} })
+  offering = await consumer.getSinglePost({ PostHashHex: req.PostHashHax })
+  return { res: { message: 'made sacrifice successfully', payload: { updatedOffering: [] } } }
+}
+// export async function 
 
 
 
-
-export const game = { startWeek, makeOffering, getSnapshot, endWeek, payWeek }
+export const game = { startWeek, makeOffering, makeSacrificeWithDiamonds, gameState, endWeek, payWeek, makeSacrificeWithDeso }

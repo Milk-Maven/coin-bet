@@ -1,3 +1,12 @@
+1/15/24
+doing: fetch game state on UI
+done: added starting game state endpoint
+discard:
+add test to make snapshot
+add UI To view bids by week
+1/12/24
+add test to make snapshot
+add UI To view bids by week
 1/10/24
 doing:
 add test to make snapshot

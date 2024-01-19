@@ -1,7 +1,8 @@
-import { PostEntryResponse } from "deso-protocol";
+import type { PostEntryResponse } from "deso-protocol";
 
 export const endpoints = {
-  makeOffering: 'offering/make',
+  offering: 'game/make',
+  sacrifice: 'game/sacrifice',
   start: 'game/start',
   end: 'game/end',
   snapshot: 'game/snapshot',
@@ -16,16 +17,23 @@ export function checkCondition(condition: boolean, errorMessage: string): void {
 export const PUB_KEY: Readonly<string> = 'BC1YLgJ6FWVz9GKQwktGmgRQ7DDFZj65ZhyxTGiSGnCGcYX4Hhx2VaY'
 
 export type PartialWithRequiredFields<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+// extra data types
 export type OfferingExtraDateRequest = {
   endDate: string,
   totalOptions: string
   postType: PostType.offering
   creatorPublicKey: string
+
 };
 
 export type OfferingOptionsExtraDataRequest = {
   option: string
 };
+
+// Request
+export enum SacrificePayment { DiamondLevel = 'DiamondLevel', AmountNanos = 'AmountNanos' }
+
+
 
 export enum PostType { offering = 'offering', startWeek = 'startWeek', option = 'option', pay = 'pay' }
 export type StartWeekRequest = {
@@ -44,12 +52,14 @@ export type CalfEvent<Response> = RoundEvent<Response>
 export type Start = { startedWeek: PostEntryResponse, }
 export type End = { end: string, }
 export type Offering = { offeringOptions: PostEntryResponse[], offering: PostEntryResponse }
-export type SnapShot = { currentWeek: PostEntryResponse, offerings: PostEntryResponse[], sacrifice: PostEntryResponse }
-export type Pay = { payments: string[], }
+export type Pay = { payments: string[] }
+export type Sacrifice = { updatedOffering: PostEntryResponse }
 //app actions
 //
 export type RunStart = { message: string, payload: Start }
 export type RunOffering = { message: string, payload: { offeringOptions: PostEntryResponse[], offering: PostEntryResponse } }
 export type RunEnd = { message: string, payload: End }
 export type RunPay = { message: string, payload: Pay }
-export type RunSnapShot = { message: string, payload: SnapShot }
+export type RunSnapShot = { message: string, payload: Pay }
+export type RunMakeSacrifice = { message: string, payload: Sacrifice }
+

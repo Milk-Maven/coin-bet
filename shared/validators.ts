@@ -21,15 +21,31 @@ export const offeringCreateValidation = z.object({
 
 // Example usage
 
-export const offeringGetValidation = z.object({
-  PostHashHex: z.string(),
+export const offeringRequestValidation = z.object({
+  PostHashHax: z.string(),
   OptionPostHashHex: z.array(z.string()),
   PosterPublicKeyBase58Check: z.string()
 
 });
 
+export const sacrificeDiamondsRequestValidation = z.object({
+  TransactionHex: z.string(),
+  DiamondPostHashHex: z.string(),
+  SenderPublicKeyBase58Check: z.string()
+
+});
+
+export const sacrificeDesoRequestValidation = z.object({
+  TransactionHex: z.string(),
+  AmountNanos: z.string(),
+  SenderPublicKeyBase58Check: z.string(),
+  PostHashHax: z.string()
+});
+
+export type SacrificeDesoRequest = TypeOf<typeof sacrificeDesoRequestValidation>;
+export type SacrificeDiamondRequest = TypeOf<typeof sacrificeDiamondsRequestValidation>;
 export type OfferringCreateRequest = TypeOf<typeof offeringCreateValidation>;
-export type OfferingGetRequest = TypeOf<typeof offeringGetValidation>;
+export type OfferingGetRequest = TypeOf<typeof offeringRequestValidation>;
 
 export const endpoints = {
   betNew: 'bet/new',

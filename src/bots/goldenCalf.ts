@@ -1,88 +1,76 @@
-import { PostType, StartWeekRequest, Start, CalfEvent, SnapShot, OfferingExtraDateRequest, Offering, OfferingOptionsExtraDataRequest } from '../../shared/utils.js';
+import { PostType, Start, CalfEvent, OfferingExtraDateRequest, Offering, OfferingOptionsExtraDataRequest, PartialWithRequiredFields, } from '../../shared/utils.js';
 import { OfferringCreateRequest } from '../../shared/validators.js';
 import { PostEntryResponse } from '../deso.js';
 import { BaseBot } from './bot.js';
 import * as deso from 'deso-protocol';
 
 import dotenv from 'dotenv'
+import { UtilBot } from './util.js';
+import { CalfOfferingGame, CalfProfileGame, CalfWeekGame } from './calfState.js';
 dotenv.config();
 export class GoldenCalfBot extends BaseBot {
+  util = UtilBot;
   constructor() {
     super({ seedHex: process.env.APP_SEED_HEX as string })
   }
+
   public async switchToBidding(bet: OfferringCreateRequest): Promise<void> { //TODO move top three post from community to correct spot 
     console.log(bet)
   }
-  public async startWeek(payload: Pick<StartWeekRequest, 'description'>, nextCurrentWeek: string,): Promise<CalfEvent<Start>> {
-    //first post of its type? set it to zero
+
+  public async startWeek(payload: { description: string }, nextCurrentWeek: string,): Promise<CalfEvent<Start>> {
     let err = 'unable to start week'
     try {
-      const PostExtraData: Omit<StartWeekRequest, 'description'> = {
-        'postType': PostType.startWeek,
-        'currentWeek': nextCurrentWeek,
-        'latestWeek': 'true'
+      const goldenCalf: CalfWeekGame = {
+        offerings: {},
       }
       return await this.submitPost({
         Body: payload.description,
-        PostExtraData,
+        goldenCalf,
       }).then(async () => {
         err = 'unable to get updated week ' + nextCurrentWeek
         await this.waitForSeconds(2)
-
         const week = await this.getCurrentWeek()
         const res: Start = { startedWeek: week.res }
         return { res }
       }).catch(() => { return { err } }
+
       )
     } catch {
       return { err }
     }
   }
 
-  public async getOfferingsForCurrentWeek(): Promise<CalfEvent<PostEntryResponse[]>> {
+  public async getOfferingsByWeek({ PostHashHex }: PartialWithRequiredFields<deso.PostEntryResponse, 'PostHashHex'>): Promise<CalfEvent<PostEntryResponse[]>> {
     try {
-      const { res, err } = await this.getCurrentWeek()
-      if (err) return { err }
-      let CommentOffset = 0
-      let offerings: PostEntryResponse[] = []
-      while (CommentOffset < res.CommentCount) {
-        console.log({ 'PostHashHex': res.PostHashHex, CommentOffset, CommentLimit: 20, ThreadLeafLimit: 1, ThreadLevelLimit: 2 })
-        const { PostFound } = await deso.getSinglePost({ 'PostHashHex': res.PostHashHex, CommentOffset, CommentLimit: 20, ThreadLeafLimit: 1, ThreadLevelLimit: 2 })
-        if (PostFound.Comments) {
-          offerings = [...offerings, ...PostFound.Comments]
-        }
-        CommentOffset = CommentOffset + 20
-      }
-      // get all real offerings
-      offerings = offerings.filter(c => {
-        const extraData = c.PostExtraData as OfferingExtraDateRequest
-        c.PosterPublicKeyBase58Check === this.pubKey && extraData.postType === PostType.offering
+      const offerings: PostEntryResponse[] = await this.util.getCommentsForPost({ PostHashHex, CommentCount: 0 }, p => {
+        const extraData = p.PostExtraData as OfferingExtraDateRequest
+        return p.PosterPublicKeyBase58Check === this.pubKey && extraData.postType === PostType.offering
       })
-
-      return { res: [] }
+      // get all real offerings: from golden calf account AND post type is offering
+      return { res: offerings }
 
     } catch (e) {
       return { err: 'failed to get offerings ' + e.message }
     }
-
-    return { res: [] }
   }
-  public async updateCurrentWeek(payload) {
-    const { res, err } = await this.getCurrentWeek();
-    if (err) { return { err } }
-    const post = await this.submitPost({ PostHashHexToModify: res.PostHashHex, Body: res.Body, PostExtraData: { ...res.PostExtraData, ...payload } })
-    console.log(post)
 
-
-    return { res: {} }
-  }
+  // depricated
+  // public async updateCurrentWeek(payload) {
+  //   const { res, err } = await this.getCurrentWeek();
+  //   if (err) { return { err } }
+  //   const post = await this.submitPost({ PostHashHexToModify: res.PostHashHex, Body: res.Body, PostExtraData: { ...res.PostExtraData, ...payload } })
+  //   console.log(post)
+  //
+  //   return { res: {} }
+  // }
 
   public async getCurrentWeek(): Promise<CalfEvent<PostEntryResponse>> {
     let post: PostEntryResponse;
     try {
       const res = await deso.getPostsForUser({ PublicKeyBase58Check: this.pubKey, "NumToFetch": 20, })
       post = res.Posts.find(p => {
-        const week: StartWeekRequest = p.PostExtraData as StartWeekRequest
+        const week: CalfProfileGame = p.PostExtraData?.goldenCalf as unknown as CalfProfileGame
         return week.latestWeek === 'true'
       })
       if (post === undefined) {
@@ -103,34 +91,24 @@ export class GoldenCalfBot extends BaseBot {
   public async retireCurrentWeek(): Promise<CalfEvent<{ retiredWeek: PostEntryResponse, nextCurrentDate: string }>> {
     const { err, res } = await this.getCurrentWeek()
     if (err) {
-      return { err: 'failed to get current week' }
+      return { err: 'retirecurrentweek: failed to get current week' }
 
     }
     const response = { res: { retiredWeek: res, nextCurrentDate: (1 + Number(res.PostExtraData.currentWeek)) + "" } }
     return this.submitPost({
       Body: res.Body,
       PostHashHexToModify: res.PostHashHex,
-      PostExtraData: { ...res.PostExtraData, latestWeek: 'false' }
+      goldenCalf: { latestWeek: 'false' }
     }).then(() => { return response })
-      .catch(() => { return { err: 'retiring latest week failed' } })
-  }
-  public async getSnapshot(): Promise<CalfEvent<SnapShot>> {
-    const { res, err } = await this.getCurrentWeek()
-
-    if (err) {
-      return { err }
-    }
-    const offerings = await this.getOfferingsForCurrentWeek()
-    if (offerings.err) {
-      return { err: offerings.err }
-    }
-
-    return { res: { currentWeek: res, offerings: [], sacrifice: {} as PostEntryResponse } }
+      .catch((e) => {
+        console.log(e)
+        return { err: 'retiring latest week failed' }
+      }
+      )
   }
 
   public async makeOffering(bet: OfferringCreateRequest): Promise<CalfEvent<Offering>> {
     try {
-
       const { res, err } = await this.getCurrentWeek()
       if (err) return { err }
       const PostExtraData: OfferingExtraDateRequest = { endDate: bet.endDate, totalOptions: `${bet.outcomes.length}`, postType: PostType.offering, creatorPublicKey: bet.publicKey }
@@ -167,7 +145,28 @@ export class GoldenCalfBot extends BaseBot {
     } catch (e) {
       return { err: e }
     }
-
   }
+
+  public async setProfileState(state: Partial<CalfProfileGame>) {
+    this.updateProfile({ goldenCalf: state })
+  }
+  public async setWeekState(state: Partial<CalfWeekGame>) {
+    this.submitPost({ goldenCalf: state, })
+  }
+  public async setOferringState(state: Partial<CalfOfferingGame>) {
+    this.submitPost({ goldenCalf: state })
+  }
+  // public async getSacrifice({ PostHashHex }: PartialWithRequiredFields<deso.PostEntryResponse, 'PostHashHex'>): Promise<CalfEvent<{ sacrifice: PostEntryResponse }>> {
+  //   const sacrifice = await deso.getSinglePost({ PostHashHex })
+  //   return { res: { sacrifice: sacrifice.PostFound } }
+  // }
+
+  // public async getSacrificesForOffering({ PostHashHex }: PartialWithRequiredFields<deso.PostEntryResponse, 'PostHashHex'>) {
+  //   const res = await this.util.getCommentsForPost({ PostHashHex, CommentCount: 0 }, (p) => {
+  //     const PostExtraData: SacrificeExtraDataRequest = p.PostExtraData as 
+  //     return !!PostExtraData
+  //   })
+  //   return res;
+  // }
 }
 

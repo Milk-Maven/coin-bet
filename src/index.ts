@@ -5,19 +5,11 @@ import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
 import { game } from './bots/static.js';
-import { OfferringCreateRequest, offeringExamples } from '../shared/validators.js';
+import { OfferringCreateRequest, SacrificeDesoRequest, SacrificeDiamondRequest, offeringRequestValidation, sacrificeDesoRequestValidation, sacrificeDiamondsRequestValidation } from '../shared/validators.js';
 
 dotenv.config();
 
 
-// import { PostEntryResponse } from './deso.js';
-//
-// import { offeringGetValidation, offeringCreateValidation, OfferingGetRequest } from '../shared/validators.js'
-// import { z } from 'zod';
-// import { endpoints } from '../shared/utils.js'
-// import { getOffering, makeOffering, startWeek } from './game.js';
-// import { runTest } from './test.js';
-// Get the type of the Zod object
 
 const app = express();
 const port = 3000;
@@ -29,29 +21,10 @@ app.use(cors());
 
 
 
-// app.post('/' + endpoints.offeringCreate, function(req: { body: OfferingGetRequest }) {
-// const validationResult = offeringCreateValidation.extend({ ParentStakeID: z.string() }).safeParse(req.body); // add validation
-// if (validationResult.success) consumerBot.makeOffering(validationResult.data)
-// });
-// app.get('/success', (req, res) => {
 //   res.status(200).json({ success: true, message: 'Request successful' });
-// });
-//
-// // Example route for error
-// app.get('/error', (req, res) => {
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
-// });
-//
-// // Handling 404 Not Found
-// app.use((req, res) => {
 //   res.status(404).json({ success: false, message: 'Not Found' });
-// });
-//
-// // Error handler middleware
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
-// });
 
 
 app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
@@ -65,8 +38,13 @@ app.post('/' + endpoints.start, async function(req: { body: { description: strin
   }
 });
 
-app.post('/' + endpoints.makeOffering, async function(req: { body: OfferringCreateRequest }, res) {
+// TODO
+app.post('/' + endpoints.offering, async function(req: { body: OfferringCreateRequest }, res) {
   // add zod validation
+  const request = offeringRequestValidation.safeParse(req.body)
+  if (!request.success) {
+    return res.status(500).json({ err: 'issue validating request' });
+  }
   const response = await game.makeOffering(req.body)
   if (response.res) {
     return res.status(200).json({ ...response.res, });
@@ -76,17 +54,52 @@ app.post('/' + endpoints.makeOffering, async function(req: { body: OfferringCrea
   }
 });
 
-app.post('/' + endpoints.snapshot, async function(_req, res) {
+// TODO
+app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDiamondRequest }, res) {
   // add zod validation
-  const response = await game.getSnapshot()
+  const request = sacrificeDiamondsRequestValidation.safeParse(req.body)
+  if (!request.success) {
+    return res.status(500).json({ err: 'issue validating request' });
+  }
+  const response = await game.makeSacrificeWithDiamonds(req.body)
   if (response.res) {
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    res.status(404).json({ err: response.err });
+    return res.status(404).json({ err: response.err });
   }
 });
 
+// TODO
+app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDesoRequest }, res) {
+  // add zod validation
+  const request = sacrificeDesoRequestValidation
+    .safeParse(req.body)
+  if (!request.success) {
+    return res.status(500).json({ err: 'issue validating request' });
+  }
+  const response = await game.makeSacrificeWithDiamonds(req.body)
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    return res.status(404).json({ err: response.err });
+  }
+});
+
+// TODO
+app.post('/' + endpoints.snapshot, async function(_req, res) {
+  // add zod validation
+  const response = await game.gameState()
+  if (response.res) {
+    return res.status(200).json({ response, });
+  }
+  // if (response.err) {
+  // res.status(404).json({ err: response.err });
+  // }
+});
+
+// TODO
 app.post('/' + endpoints.end, async function(_req, res) {
   // add zod validation
   const response = await game.endWeek()
@@ -98,6 +111,7 @@ app.post('/' + endpoints.end, async function(_req, res) {
   }
 });
 
+// TODO
 app.post('/' + endpoints.pay, async function(_req, res) {
   // add zod validation
   const response = await game.payWeek()
@@ -110,15 +124,10 @@ app.post('/' + endpoints.pay, async function(_req, res) {
 });
 // start the server
 app.listen(port, async () => {
-  console.log('listening on port' + port)
-  const res = await game.makeOffering(offeringExamples[0])
-
-  console.log('res')
+  const res = await game.startWeek({ description: "test description" })
   console.log(res)
-  // const snapshot = await getSnapshot()
-  // console.log(snapshot)
-
-
+  // const res = await gameState()
+  // console.log(res)
 })
 
 
