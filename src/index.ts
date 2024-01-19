@@ -124,10 +124,7 @@ app.post('/' + endpoints.pay, async function(_req, res) {
 });
 // start the server
 app.listen(port, async () => {
-  const res = await game.startWeek({ description: "test description" })
-  console.log(res)
-  // const res = await gameState()
-  // console.log(res)
+  console.log('listening on port ' + port)
 })
 
 
