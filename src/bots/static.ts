@@ -5,7 +5,7 @@ import { OfferringCreateRequest, SacrificeDesoRequest, SacrificeDiamondRequest, 
 import { PostEntryResponse } from '../deso.js';
 import { RunOffering, RoundEvent, RunEnd, RunPay, RunMakeSacrifice, } from '../../shared/utils.js';
 import { UtilBot } from './util.js';
-import { getCalfState } from './calfState.js';
+import { CalfProfileGame, getCalfState } from './calfState.js';
 
 export type ConsumerBotMetaData = {
   DESOBalanceNanos: number;
@@ -60,14 +60,21 @@ async function makeOffering(offerringCreateRequest: OfferringCreateRequest): Pro
   const { offering, offeringOptions } = res
   return { res: { message: 'offerings succuessfully made', payload: { offering, offeringOptions } } }
 }
+async function init(description: string) {
+  const { res } = await startWeek({ description })
+  const initState: CalfProfileGame = { calfWeek: { 0: res.payload.PostHashHex }, latestWeek: 'true' }
+  // throw 'run this only when setting up an new instance!'
+  const goldenCalfBot = new GoldenCalfBot()
+  goldenCalfBot.setProfileState(initState)
+}
 
 type RunStartWeek = { message: string, payload: PostEntryResponse }
 async function startWeek({ description }): Promise<RoundEvent<RunStartWeek>> {
   const calf = new GoldenCalfBot()
-  console.log('here')
   const retire = await calf.retireCurrentWeek()
-  if (retire.err) return { err: retire.err }
 
+  console.log(retire)
+  if (retire.err) return { err: retire.err }
   const start = await calf.startWeek({ description: description }, retire.res.nextCurrentDate)
   if (start.err) return { err: start.err }
   await calf.setProfileState({ calfWeek: { [retire.res.nextCurrentDate]: start.res.startedWeek.PostHashHex } })
@@ -135,6 +142,13 @@ export async function makeSacrificeWithDeso(req: SacrificeDesoRequest) {
 }
 // export async function 
 
-
-
-export const game = { startWeek, makeOffering, makeSacrificeWithDiamonds, gameState, endWeek, payWeek, makeSacrificeWithDeso }
+export const game = {
+  startWeek,
+  makeOffering,
+  makeSacrificeWithDiamonds,
+  gameState,
+  endWeek,
+  payWeek,
+  makeSacrificeWithDeso,
+  init
+}

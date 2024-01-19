@@ -8,9 +8,6 @@ import { game } from './bots/static.js';
 import { OfferringCreateRequest, SacrificeDesoRequest, SacrificeDiamondRequest, offeringRequestValidation, sacrificeDesoRequestValidation, sacrificeDiamondsRequestValidation } from '../shared/validators.js';
 
 dotenv.config();
-
-
-
 const app = express();
 const port = 3000;
 
@@ -19,22 +16,41 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 app.use(cors());
 
-
-
 //   res.status(200).json({ success: true, message: 'Request successful' });
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
 //   res.status(404).json({ success: false, message: 'Not Found' });
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
 
 
+app.post('/' + endpoints.init, async function(req: { body: { description: string }, }, res) {
+  // add zod valdation
+  const response = await game.init(req.body.description)
+  // if (response.res) {
+  return res.status(200).json(response);
+  // }
+  // if (response.err) {
+  //   return res.status(500).json({ err: response.err });
+  // }
+});
 app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
-  // add zod valdaation
+  // add zod valdation
   const response = await game.startWeek(req.body)
   if (response.res) {
     return res.status(200).json({ ...response.res, });
   }
   if (response.err) {
-    return res.status(404).json({ err: response.err });
+    return res.status(500).json({ err: response.err });
+  }
+});
+app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
+  // add zod valdation
+  console.log('starting')
+  const response = await game.startWeek(req.body)
+  if (response.res) {
+    return res.status(200).json({ ...response.res, });
+  }
+  if (response.err) {
+    return res.status(500).json({ err: response.err });
   }
 });
 

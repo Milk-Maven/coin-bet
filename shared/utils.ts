@@ -4,6 +4,7 @@ export const endpoints = {
   offering: 'game/make',
   sacrifice: 'game/sacrifice',
   start: 'game/start',
+  init: 'game/init',
   end: 'game/end',
   snapshot: 'game/snapshot',
   pay: 'game/pay'

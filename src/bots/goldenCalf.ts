@@ -6,7 +6,7 @@ import * as deso from 'deso-protocol';
 
 import dotenv from 'dotenv'
 import { UtilBot } from './util.js';
-import { CalfOfferingGame, CalfProfileGame, CalfWeekGame } from './calfState.js';
+import { CalfOfferingGame, CalfProfileGame, CalfWeekGame, getCalfState } from './calfState.js';
 dotenv.config();
 export class GoldenCalfBot extends BaseBot {
   util = UtilBot;
@@ -66,33 +66,34 @@ export class GoldenCalfBot extends BaseBot {
   // }
 
   public async getCurrentWeek(): Promise<CalfEvent<PostEntryResponse>> {
-    let post: PostEntryResponse;
-    try {
-      const res = await deso.getPostsForUser({ PublicKeyBase58Check: this.pubKey, "NumToFetch": 20, })
-      post = res.Posts.find(p => {
-        const week: CalfProfileGame = p.PostExtraData?.goldenCalf as unknown as CalfProfileGame
-        return week.latestWeek === 'true'
-      })
-      if (post === undefined) {
-        post = res.Posts.reduce((latest, post) => {
-          return Number(post.PostExtraData?.currentWeek) > Number(latest.PostExtraData?.currentWeek) ? post : latest;
-        }, res.Posts[0]);
-      }
-    } catch (e) {
-      return { err: 'failed to get current week: ' + e.message }
-    }
-
-    if (post === undefined) {
-      return { err: 'failed to get current week: post response came back undefined' }
-    }
-    return { res: post }
+    const state = await getCalfState({ PublicKeyBase58Check: this.pubKey })
+    // let post: PostEntryResponse;
+    // try {
+    //   const res = await deso.getPostsForUser({ PublicKeyBase58Check: this.pubKey, "NumToFetch": 20, })
+    //   post = res.Posts.find(p => {
+    //     const week: CalfProfileGame = p.PostExtraData?.goldenCalf as unknown as CalfProfileGame
+    //     return week.latestWeek === 'true'
+    //   })
+    //   if (post === undefined) {
+    //     post = res.Posts.reduce((latest, post) => {
+    //       return Number(post.PostExtraData?.currentWeek) > Number(latest.PostExtraData?.currentWeek) ? post : latest;
+    //     }, res.Posts[0]);
+    //   }
+    // } catch (e) {
+    //   return { err: 'failed to get current week: ' + e.message }
+    // }
+    //
+    // if (post === undefined) {
+    //   return { err: 'failed to get current week: post response came back undefined' }
+    // }
+    return { res: state.calfWeek.post }
   }
 
   public async retireCurrentWeek(): Promise<CalfEvent<{ retiredWeek: PostEntryResponse, nextCurrentDate: string }>> {
+    console.log('get current week')
     const { err, res } = await this.getCurrentWeek()
     if (err) {
       return { err: 'retirecurrentweek: failed to get current week' }
-
     }
     const response = { res: { retiredWeek: res, nextCurrentDate: (1 + Number(res.PostExtraData.currentWeek)) + "" } }
     return this.submitPost({
@@ -153,7 +154,7 @@ export class GoldenCalfBot extends BaseBot {
   public async setWeekState(state: Partial<CalfWeekGame>) {
     this.submitPost({ goldenCalf: state, })
   }
-  public async setOferringState(state: Partial<CalfOfferingGame>) {
+  public async setOfferringState(state: Partial<CalfOfferingGame>) {
     this.submitPost({ goldenCalf: state })
   }
   // public async getSacrifice({ PostHashHex }: PartialWithRequiredFields<deso.PostEntryResponse, 'PostHashHex'>): Promise<CalfEvent<{ sacrifice: PostEntryResponse }>> {
