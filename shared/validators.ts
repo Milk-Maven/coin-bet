@@ -6,7 +6,6 @@ export const offeringCreateValidation = z.object({
   outcomes: z.array(
     z.string()
   ).refine((data) => {
-    console.log(data)
     return data[0]?.length && data[1]?.length
   }, {
 

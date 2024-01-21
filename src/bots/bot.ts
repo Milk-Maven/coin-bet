@@ -100,25 +100,30 @@ export abstract class BaseBot {
       .then((res) => this.submitTransaction(res))
     return res
   }
-
   public async updateProfile(req: Partial<deso.UpdateProfileRequest> & { goldenCalf?: object }) {
+    console.log(this.pubKey)
     const profile = await BaseBot.getSingleProfile({ PublicKeyBase58Check: this.pubKey })
     const transactionEndpoint = 'update-profile';
+    const goldenCalf = JSON.parse(profile.ExtraData.goldenCalf ?? '{}')
+    console.log('hello')
+    const ExtraData = {
+      ...profile.ExtraData, goldenCalf: JSON.stringify({ ...goldenCalf, ...req.goldenCalf })
+    }
+    console.log(ExtraData)
     const request: Partial<deso.UpdateProfileRequest> = {
-      ...profile,
+      UpdaterPublicKeyBase58Check: this.pubKey,
+      ProfilePublicKeyBase58Check: this.pubKey,
+      NewUsername: profile.Username,
+      NewDescription: profile.Description,
+      MinFeeRateNanosPerKB: 1000,
+      NewStakeMultipleBasisPoints: 25000,
+      NewCreatorBasisPoints: 100,
       ...req,
-      ExtraData: {
-        ...profile.ExtraData,
-        ...req.ExtraData,
-        goldenCalf: {
-          ...JSON.parse(profile?.ExtraData?.goldenCalf),
-          ...req.goldenCalf
-        }
-      }
+      ExtraData,
     }
     const res = axios.post(this.selectedNodePath + transactionEndpoint, request).then(res => {
       return res.data as deso.UpdateProfileResponse;
-    }).then(({ TransactionHex }) => this.signTransaction({ TransactionHex })).then((res) => this.submitTransaction(res))
+    }).then(({ TransactionHex }) => this.signTransaction({ TransactionHex })).then((res) => this.submitTransaction(res)).catch()
     return res;
   }
 

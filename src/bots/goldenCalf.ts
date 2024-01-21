@@ -34,7 +34,6 @@ export class GoldenCalfBot extends BaseBot {
         const res: Start = { startedWeek: week.res }
         return { res }
       }).catch(() => { return { err } }
-
       )
     } catch {
       return { err }

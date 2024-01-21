@@ -15,9 +15,6 @@ export type ConsumerBotMetaData = {
   Username: string;
 };
 const db = new DB("./db.json", { syncOnWrite: true });
-export const getResultsSnapshot = async (PostHashHex: string) => {
-  console.log(PostHashHex)
-}
 export function desoToNanos(deso: number) {
   const nanosPerDeso = 1000000;
 
@@ -60,11 +57,11 @@ async function makeOffering(offerringCreateRequest: OfferringCreateRequest): Pro
   const { offering, offeringOptions } = res
   return { res: { message: 'offerings succuessfully made', payload: { offering, offeringOptions } } }
 }
-async function init(description: string) {
-  const { res } = await startWeek({ description })
-  const initState: CalfProfileGame = { calfWeek: { 0: res.payload.PostHashHex }, latestWeek: 'true' }
+async function init() {
+  const initState: CalfProfileGame = { calfWeek: {} }
   // throw 'run this only when setting up an new instance!'
   const goldenCalfBot = new GoldenCalfBot()
+  console.log('before')
   goldenCalfBot.setProfileState(initState)
 }
 

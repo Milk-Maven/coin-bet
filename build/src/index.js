@@ -8,7 +8,6 @@ import { offeringRequestValidation, sacrificeDesoRequestValidation, sacrificeDia
 dotenv.config();
 const app = express();
 const port = 3000;
-//
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -16,9 +15,10 @@ app.use(cors());
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
 //   res.status(404).json({ success: false, message: 'Not Found' });
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
-app.post('/' + endpoints.init, async function (req, res) {
+app.post('/' + endpoints.init, async function (_req, res) {
     // add zod valdation
-    const response = await game.init(req.body.description);
+    console.log('here');
+    const response = await game.init();
     // if (response.res) {
     return res.status(200).json(response);
     // }
