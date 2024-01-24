@@ -27,7 +27,7 @@ export class UtilBot extends BaseBot {
     }
     return diamondPosts ?? []
   }
-  public static async getSinglePost({ PostHashHex }) {
+  public static async getSinglePost({ PostHashHex }: { PostHashHex: string }) {
     const { PostFound } = await deso.getSinglePost({ PostHashHex, CommentOffset: 0, CommentLimit: 20, ThreadLeafLimit: 1, ThreadLevelLimit: 2 })
     return PostFound
   }

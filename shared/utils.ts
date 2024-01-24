@@ -10,7 +10,7 @@ export const endpoints = {
   pay: 'game/pay'
 }
 
-export function checkCondition(condition: boolean, errorMessage: string): void {
+export function verify(condition: boolean, errorMessage: string): void {
   if (!condition) {
     throw new Error(errorMessage);
   }

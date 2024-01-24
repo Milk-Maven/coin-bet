@@ -1,10 +1,13 @@
 import { PostEntryResponse, ProfileEntryResponse, } from "deso-protocol";
-import { UtilBot } from "./util.js";
 import { TypeOf, z } from "zod";
+import { UtilBot } from "./util.js";
+import { BaseBot } from "./bot.js";
+import { verify } from "../../shared/utils.js";
 
 // profile state
 export const CalfProfileValidation = z.object({
-  calfWeek: z.record(z.string()),
+  calfWeeks: z.record(z.string()),
+  currentWeekHashHex: z.string()
 });
 export type CalfProfileGame = TypeOf<typeof CalfProfileValidation>;
 export type CalfProfile = {
@@ -14,7 +17,7 @@ export type CalfProfile = {
 // current week state
 export const CalfWeekValidation = z.object({
   offerings: z.record(z.string()),
-  latestWeek: z.union([z.literal('true'), z.literal('false')])
+  latestWeek: z.string()
 });
 export type CalfWeekGame = TypeOf<typeof CalfWeekValidation>;
 export type CalfWeek = {
@@ -28,6 +31,7 @@ export const CalfOfferingValidation = z.object({
   creatorPublicKey: z.string(),
   options: z.array(z.string()),
   winningOption: z.string(),
+  Body: z.string()
 });
 export type CalfOfferingGame = TypeOf<typeof CalfOfferingValidation>;
 export type CalfOffering = {
@@ -49,30 +53,88 @@ export type CalfSacrifice = {
   post: PostEntryResponse,
   game: CalfSacrificeGame
 }
+export class CalfState extends BaseBot {
 
-export async function getCalfState({ PublicKeyBase58Check }) {
-  // get profile
-  console.log('getprofile')
-  const profilePost = await UtilBot.getSingleProfile({ PublicKeyBase58Check });
+  //profile calls
+  public async setProfile(state: Partial<CalfProfileGame>) {
+    const profile = await this.getProfile()
+    const calfWeeksArray = Object.keys(profile.calfWeeks)
+    const updatedProfile: CalfProfileGame = {
+      calfWeeks: { [calfWeeksArray.length]: state.currentWeekHashHex },
+      currentWeekHashHex: state.currentWeekHashHex || profile.currentWeekHashHex
+    }
+    this.updateProfile({ goldenCalf: updatedProfile, })
+  }
+  public async getProfile(): Promise<CalfProfileGame> {
+    const profile = await UtilBot.getSingleProfile({ PublicKeyBase58Check: this.pubKey })
+    return CalfProfileValidation.parse(JSON.parse(profile.ExtraData.goldenCalf))
+  }
 
-  const gameProfile: CalfProfileGame = CalfProfileValidation.parse(profilePost.ExtraData)
+  //week calls
+  public async getWeek({ PostHashHex }: { PostHashHex: string | null }): Promise<CalfWeekGame> {
+    const profile = await this.getProfile();
+    const weekPost = await UtilBot.getSinglePost({ PostHashHex: PostHashHex ?? profile.currentWeekHashHex });
+    return CalfWeekValidation.parse(JSON.parse(weekPost.PostExtraData.goldenCalf))
+  }
+  public async updateWeek({ state, PostHashHexToModify, }: { state: Partial<CalfWeekGame>, PostHashHexToModify: string | null }) {
+    const week = PostHashHexToModify ? await this.getWeek({ PostHashHex: PostHashHexToModify }) : {}
+    const goldenCalf: CalfWeekGame = { offerings: { ...week.offerings, ...state.offerings, }, latestWeek: state.latestWeek }
+    this.updatePost({
+      PostHashHexToModify, PostExtraData: { goldenCalf: JSON.stringify(goldenCalf) },
+    })
+  }
 
-  const calfProfile: CalfProfile = {
-    profile: profilePost, game: gameProfile
+  public async setWeek({ offerings, latestWeek, Body, PostHashHexToModify, }: Partial<CalfWeekGame> & { PostHashHexToModify: string | null, Body: string }) {
+    const week = PostHashHexToModify ? await this.getWeek({ PostHashHex: PostHashHexToModify }) : {}
+    const goldenCalf: CalfWeekGame = { offerings: { ...week.offerings, ...offerings, }, latestWeek }
+    return this.submitPost({
+      Body,
+      PostHashHexToModify, PostExtraData: { goldenCalf: JSON.stringify(goldenCalf) },
+    })
   }
-  // get currentWeek
-  const weekPost = await UtilBot.getSinglePost({ PostHashHex: calfProfile.game.calfWeek });
-  const gameWeek: CalfWeekGame = CalfWeekValidation.parse(weekPost.PostExtraData)
-  const calfWeek: CalfWeek = {
-    post: weekPost,
-    game: gameWeek
+  // offering calls
+  public async getOfferingsForWeek({ PostHashHex }: { PostHashHex: string }): Promise<CalfOfferingGame[]> {
+    const comments = await UtilBot.getCommentsForPost({ PostHashHex, CommentCount: 0 });
+    const offerings = comments.map(o => {
+      return CalfOfferingValidation.parse(JSON.parse(o.PostExtraData.goldenCalf))
+    })
+    return offerings;
   }
-  const weekOfferings = await UtilBot.getCommentsForPost({ PostHashHex: weekPost.PostHashHex, CommentCount: 0 });
-  const calfOfferings = weekOfferings.map(post => {
-    const game: CalfOfferingGame = CalfOfferingValidation.parse(post.PostExtraData)
-    return { post, game }
-  })
-  return {
-    calfProfile, calfWeek, calfOfferings
+
+  public async getOffering({ PostHashHex }: { PostHashHex: string | null }): Promise<CalfOfferingGame> {
+    const profile = await this.getProfile();
+    const weekPost = await UtilBot.getSinglePost({ PostHashHex: PostHashHex ?? profile.currentWeekHashHex });
+    return CalfOfferingValidation.parse(JSON.parse(weekPost.PostExtraData.goldenCalf))
   }
+
+  public async updateOfferingForWeekState({ goldenCalf, PostHashHex }: { PostHashHex: string, goldenCalf: CalfOfferingGame }) {
+    const profile = await this.getProfile();
+    verify(!!profile.currentWeekHashHex, 'current week not set in profile')
+    const offering = await this.updatePost({ // submit offering
+      PostHashHexToModify: PostHashHex,
+      PostExtraData: {
+        goldenCalf: JSON.stringify({ ...goldenCalf })
+      },
+    })
+    return offering;
+  }
+  public async setOfferingForWeekState({ goldenCalf }: { goldenCalf: CalfOfferingGame }) {
+    const profile = await this.getProfile();
+    verify(!!profile.currentWeekHashHex, 'current week not set in profile')
+    const offering = await this.submitPost({ // submit offering
+      ParentStakeID: profile.currentWeekHashHex,
+      Body: goldenCalf.Body,
+      PostExtraData: {
+        goldenCalf: JSON.stringify({ ...goldenCalf })
+      },
+    })
+    const options = goldenCalf.options.map(async o => {
+      await this.submitPost({
+        ParentStakeID: offering.PostHashHex, Body: o
+      })
+    })
+    await Promise.all(options)
+    return { offering, options }
+  }
+  // sacrifices
 }

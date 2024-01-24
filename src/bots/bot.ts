@@ -13,17 +13,17 @@ export abstract class BaseBot {
   public seedHex = ''
   public selectedNodePath = 'https://node.deso.org/api/v0/'
 
-  public submitPost = async function(req: Partial<deso.SubmitPostRequest>
-    & { Body?: string, goldenCalf?: { [key: string]: any } }): Promise<deso.PostEntryResponse> {
+
+  public async updatePost(req: Partial<deso.SubmitPostRequest>
+  ): Promise<deso.PostEntryResponse> {
     let existingPost: Partial<PostEntryResponse> = {}
     if (req.PostHashHexToModify) {
       existingPost = await BaseBot.getSinglePost({ PostHashHex: req.PostHashHexToModify })
     }
     const transactionEndpoint = 'submit-post'
-    const { Body, } = req
     const post = axios.post(this.selectedNodePath + transactionEndpoint, {
       BodyObj: {
-        Body,
+        Body: existingPost.Body,
         VideoURLs: [],
         ImageURLs: []
       },
@@ -41,10 +41,6 @@ export abstract class BaseBot {
       PostExtraData: {
         ...existingPost.PostExtraData,
         ...req.PostExtraData,
-        goldenCalf: JSON.stringify({
-          ...JSON.parse(existingPost?.PostExtraData?.goldenCalf ?? '{}'),
-          ...req.goldenCalf
-        })
       }
     }).then(res => {
       return res.data
@@ -53,7 +49,42 @@ export abstract class BaseBot {
     }).then(async (res) => {
       const a = await this.submitTransaction(res)
 
-      return a?.PostEntryResponse ?? {}
+      return a?.PostEntryResponse
+    })
+    return post
+  }
+
+  public async submitPost(req: Partial<deso.SubmitPostRequest>
+    & { Body: string }): Promise<deso.PostEntryResponse> {
+    const transactionEndpoint = 'submit-post'
+    const { Body } = req
+    const post = axios.post(this.selectedNodePath + transactionEndpoint, {
+      BodyObj: {
+        Body,
+        VideoURLs: [],
+        ImageURLs: []
+      },
+      UpdaterPublicKeyBase58Check: this.pubKey,
+      ParentStakeID: '',
+      MinFeeRateNanosPerKB: 1000,
+      PostHashHexToModify: '',
+      RepostedPostHashHex: '',
+      IsHidden: false,
+      TransactionFees: [],
+      InTutorial: false,
+      IsFrozen: false,
+      ...req,
+      PostExtraData: {
+        ...req.PostExtraData,
+      }
+    }).then(res => {
+      return res.data
+    }).then((res) => {
+      return this.signTransaction({ TransactionHex: res.TransactionHex })
+    }).then(async (res) => {
+      const a = await this.submitTransaction(res)
+
+      return a?.PostEntryResponse
     })
     return post
   }
@@ -101,15 +132,12 @@ export abstract class BaseBot {
     return res
   }
   public async updateProfile(req: Partial<deso.UpdateProfileRequest> & { goldenCalf?: object }) {
-    console.log(this.pubKey)
     const profile = await BaseBot.getSingleProfile({ PublicKeyBase58Check: this.pubKey })
     const transactionEndpoint = 'update-profile';
     const goldenCalf = JSON.parse(profile.ExtraData.goldenCalf ?? '{}')
-    console.log('hello')
     const ExtraData = {
       ...profile.ExtraData, goldenCalf: JSON.stringify({ ...goldenCalf, ...req.goldenCalf })
     }
-    console.log(ExtraData)
     const request: Partial<deso.UpdateProfileRequest> = {
       UpdaterPublicKeyBase58Check: this.pubKey,
       ProfilePublicKeyBase58Check: this.pubKey,

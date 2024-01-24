@@ -4,9 +4,10 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { game } from './bots/static.js';
-import { OfferringCreateRequest, SacrificeDesoRequest, SacrificeDiamondRequest, offeringRequestValidation, sacrificeDesoRequestValidation, sacrificeDiamondsRequestValidation } from '../shared/validators.js';
-
+import { offeringRequestValidation, } from '../shared/validators.js';
+import { CalfOfferingGame } from './bots/calfState.js'
+import { GoldenCalfBot } from './bots/goldenCalf.js';
+const calf = new GoldenCalfBot()
 dotenv.config();
 const app = express();
 const port = 3000;
@@ -21,125 +22,90 @@ app.use(cors());
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
 
 
-app.post('/' + endpoints.init, async function(_req: { body: { description: string }, }, res) {
-
-  // add zod valdation
-  console.log('here')
-  const response = await game.init()
-
-  // if (response.res) {
+// testing
+app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
+  const week = await calf.setWeek({ latestWeek: 'true', offerings: {}, Body: req.body.description, PostHashHexToModify: null })
+  const response = await calf.setProfile({ currentWeekHashHex: week.PostHashHex })
   return res.status(200).json(response);
   // }
-  // if (response.err) {
-  //   return res.status(500).json({ err: response.err });
-  // }
-});
-app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
-  // add zod valdation
-  const response = await game.startWeek(req.body)
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(500).json({ err: response.err });
-  }
-});
-app.post('/' + endpoints.start, async function(req: { body: { description: string, init?: boolean }, }, res) {
-  // add zod valdation
-  console.log('starting')
-  const response = await game.startWeek(req.body)
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(500).json({ err: response.err });
-  }
 });
 
-// TODO
-app.post('/' + endpoints.offering, async function(req: { body: OfferringCreateRequest }, res) {
+// Testing
+app.post('/' + endpoints.offering, async function(req: { body: CalfOfferingGame }, res) {
   // add zod validation
   const request = offeringRequestValidation.safeParse(req.body)
   if (!request.success) {
     return res.status(500).json({ err: 'issue validating request' });
   }
-  const response = await game.makeOffering(req.body)
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(404).json({ err: response.err });
-  }
+  const payload = await calf.setOfferingForWeekState({ goldenCalf: req.body })
+  return res.status(200).json(payload);
 });
 
 // TODO
-app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDiamondRequest }, res) {
-  // add zod validation
-  const request = sacrificeDiamondsRequestValidation.safeParse(req.body)
-  if (!request.success) {
-    return res.status(500).json({ err: 'issue validating request' });
-  }
-  const response = await game.makeSacrificeWithDiamonds(req.body)
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(404).json({ err: response.err });
-  }
-});
+// app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDiamondRequest }, res) {
+// // add zod validation
+// const request = sacrificeDiamondsRequestValidation.safeParse(req.body)
+// if (!request.success) {
+//   return res.status(500).json({ err: 'issue validating request' });
+// }
+// const response = await game.makeSacrificeWithDiamonds(req.body)
+// if (response.res) {
+//   return res.status(200).json({ ...response.res, });
+// }
+// if (response.err) {
+//   return res.status(404).json({ err: response.err });
+// }
+// });
 
 // TODO
-app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDesoRequest }, res) {
-  // add zod validation
-  const request = sacrificeDesoRequestValidation
-    .safeParse(req.body)
-  if (!request.success) {
-    return res.status(500).json({ err: 'issue validating request' });
-  }
-  const response = await game.makeSacrificeWithDiamonds(req.body)
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(404).json({ err: response.err });
-  }
-});
+// app.post('/' + endpoints.sacrifice, async function(req: { body: SacrificeDesoRequest }, res) {
+// // add zod validation
+// const request = sacrificeDesoRequestValidation
+//   .safeParse(req.body)
+// if (!request.success) {
+//   return res.status(500).json({ err: 'issue validating request' });
+// }
+// const response = await game.makeSacrificeWithDiamonds(req.body)
+// if (response.res) {
+//   return res.status(200).json({ ...response.res, });
+// }
+// if (response.err) {
+//   return res.status(404).json({ err: response.err });
+// }
+// });
 
 // TODO
 app.post('/' + endpoints.snapshot, async function(_req, res) {
   // add zod validation
-  const response = await game.gameState()
-  if (response.res) {
-    return res.status(200).json({ response, });
-  }
-  // if (response.err) {
-  // res.status(404).json({ err: response.err });
-  // }
+  const profile = await calf.getProfile()
+  const week = await calf.getWeek({ PostHashHex: profile.currentWeekHashHex })
+  const offerings = await calf.getOfferingsForWeek({ PostHashHex: profile.currentWeekHashHex })
+  return res.status(200).json({ profile, week, offerings });
 });
 
 // TODO
-app.post('/' + endpoints.end, async function(_req, res) {
-  // add zod validation
-  const response = await game.endWeek()
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(404).json({ err: response.err });
-  }
-});
+// app.post('/' + endpoints.end, async function(_req, res) {
+//   // add zod validation
+//   const response = await game.endWeek()
+//   if (response.res) {
+//     return res.status(200).json({ ...response.res, });
+//   }
+//   if (response.err) {
+//     return res.status(404).json({ err: response.err });
+//   }
+// });
 
 // TODO
-app.post('/' + endpoints.pay, async function(_req, res) {
-  // add zod validation
-  const response = await game.payWeek()
-  if (response.res) {
-    return res.status(200).json({ ...response.res, });
-  }
-  if (response.err) {
-    return res.status(404).json({ err: response.err });
-  }
-});
+// app.post('/' + endpoints.pay, async function(_req, res) {
+//   // add zod validation
+//   const response = await game.payWeek()
+//   if (response.res) {
+//     return res.status(200).json({ ...response.res, });
+//   }
+//   if (response.err) {
+//     return res.status(404).json({ err: response.err });
+//   }
+// });
 // start the server
 app.listen(port, async () => {
   console.log('listening on port ' + port)
