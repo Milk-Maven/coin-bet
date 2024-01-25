@@ -6,8 +6,8 @@ import { verify } from "../../shared/utils.js";
 
 // profile state
 export const CalfProfileValidation = z.object({
-  calfWeeks: z.record(z.string()),
-  currentWeekHashHex: z.string()
+  calfWeeks: z.record(z.string()).optional(),
+  currentWeekHashHex: z.string().optional()
 });
 export type CalfProfileGame = TypeOf<typeof CalfProfileValidation>;
 export type CalfProfile = {
@@ -17,7 +17,7 @@ export type CalfProfile = {
 // current week state
 export const CalfWeekValidation = z.object({
   offerings: z.record(z.string()),
-  latestWeek: z.string()
+  latestWeek: z.boolean()
 });
 export type CalfWeekGame = TypeOf<typeof CalfWeekValidation>;
 export type CalfWeek = {
@@ -56,17 +56,18 @@ export type CalfSacrifice = {
 export class CalfState extends BaseBot {
 
   //profile calls
-  public async setProfile(state: Partial<CalfProfileGame>) {
+  public async setProfile(state: Pick<CalfProfileGame, 'currentWeekHashHex'>) {
     const profile = await this.getProfile()
     const calfWeeksArray = Object.keys(profile.calfWeeks)
     const updatedProfile: CalfProfileGame = {
-      calfWeeks: { [calfWeeksArray.length]: state.currentWeekHashHex },
+      calfWeeks: { ...profile.calfWeeks, [calfWeeksArray.length + 1]: state.currentWeekHashHex },
       currentWeekHashHex: state.currentWeekHashHex || profile.currentWeekHashHex
     }
-    this.updateProfile({ goldenCalf: updatedProfile, })
+    return this.updateProfile({ goldenCalf: updatedProfile, })
   }
   public async getProfile(): Promise<CalfProfileGame> {
     const profile = await UtilBot.getSingleProfile({ PublicKeyBase58Check: this.pubKey })
+    console.log(profile.ExtraData.goldenCalf)
     return CalfProfileValidation.parse(JSON.parse(profile.ExtraData.goldenCalf))
   }
 
@@ -84,12 +85,10 @@ export class CalfState extends BaseBot {
     })
   }
 
-  public async setWeek({ offerings, latestWeek, Body, PostHashHexToModify, }: Partial<CalfWeekGame> & { PostHashHexToModify: string | null, Body: string }) {
-    const week = PostHashHexToModify ? await this.getWeek({ PostHashHex: PostHashHexToModify }) : {}
-    const goldenCalf: CalfWeekGame = { offerings: { ...week.offerings, ...offerings, }, latestWeek }
+  public async setWeek({ Body }: { Body: string }) {
     return this.submitPost({
       Body,
-      PostHashHexToModify, PostExtraData: { goldenCalf: JSON.stringify(goldenCalf) },
+      PostExtraData: { goldenCalf: JSON.stringify({ latestWeek: true }) },
     })
   }
   // offering calls

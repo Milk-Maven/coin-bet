@@ -16,13 +16,6 @@ app.use(cors());
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
 //   res.status(404).json({ success: false, message: 'Not Found' });
 //   res.status(500).json({ success: false, message: 'Internal Server Error' });
-// testing
-app.post('/' + endpoints.start, async function (req, res) {
-    const week = await calf.setWeek({ latestWeek: 'true', offerings: {}, Body: req.body.description, PostHashHexToModify: null });
-    const response = await calf.setProfile({ currentWeekHashHex: week.PostHashHex });
-    return res.status(200).json(response);
-    // }
-});
 // Testing
 app.post('/' + endpoints.offering, async function (req, res) {
     // add zod validation
@@ -64,13 +57,49 @@ app.post('/' + endpoints.offering, async function (req, res) {
 //   return res.status(404).json({ err: response.err });
 // }
 // });
+app.post('/' + endpoints.resetState, async function (res) {
+    try {
+        await calf.clearExtraData();
+    }
+    catch {
+        res.status(500).json({ success: false, message: 'failed to clear extra data' });
+    }
+});
+app.post('/' + endpoints.init, async function (req, res) {
+    try {
+        const currentWeek = await calf.setWeek({ Body: req.body.description, });
+        const profile = calf.setProfile({ currentWeekHashHex: currentWeek.PostHashHex });
+        return res.status(200).json({ profile, currentWeek });
+    }
+    catch {
+        res.status(500).json({ success: false, message: 'unable to to startsnapshot' });
+    }
+    // }
+});
 // TODO
 app.post('/' + endpoints.snapshot, async function (_req, res) {
-    // add zod validation
-    const profile = await calf.getProfile();
-    const week = await calf.getWeek({ PostHashHex: profile.currentWeekHashHex });
-    const offerings = await calf.getOfferingsForWeek({ PostHashHex: profile.currentWeekHashHex });
-    return res.status(200).json({ profile, week, offerings });
+    try {
+        const profile = await calf.getProfile();
+        const week = await calf.getWeek({ PostHashHex: profile.currentWeekHashHex });
+        const offerings = await calf.getOfferingsForWeek({ PostHashHex: profile.currentWeekHashHex });
+        return res.status(200).json({ profile, week, offerings });
+    }
+    catch {
+        // todo add more precise error handling
+        res.status(404).json({ success: false, message: 'unable to fetch snapshot' });
+    }
+});
+app.post('/' + endpoints.start, async function (req, res) {
+    try {
+        const week = await calf.setWeek({ Body: req.body.description });
+        console.log({ currentWeekHashHex: week.PostHashHex });
+        const response = await calf.setProfile({ currentWeekHashHex: week.PostHashHex });
+        return res.status(200).json(response);
+    }
+    catch {
+        res.status(500).json({ success: false, message: 'unable to to startsnapshot' });
+    }
+    // }
 });
 // TODO
 // app.post('/' + endpoints.end, async function(_req, res) {

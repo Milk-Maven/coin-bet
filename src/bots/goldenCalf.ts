@@ -92,7 +92,6 @@ export class GoldenCalfBot extends CalfState {
   //     goldenCalf: { latestWeek: 'false' }
   //   }).then(() => { return response })
   //     .catch((e) => {
-  //       console.log(e)
   //       return { err: 'retiring latest week failed' }
   //     }
   //     )

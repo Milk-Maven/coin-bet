@@ -7,7 +7,8 @@ export const endpoints = {
   init: 'game/init',
   end: 'game/end',
   snapshot: 'game/snapshot',
-  pay: 'game/pay'
+  pay: 'game/pay',
+  resetState: 'game/reset-state'
 }
 
 export function verify(condition: boolean, errorMessage: string): void {
