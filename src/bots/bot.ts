@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as deso from 'deso-protocol';
 import { PostEntryResponse } from '../deso.js';
-import { CalfProfileGame } from './calfState.js';
+import { CalfProfileGame } from '../../shared/validators.js';
 type DesoBotProps = { seedHex?: string }
 // set state that all bots should have
 export abstract class BaseBot {

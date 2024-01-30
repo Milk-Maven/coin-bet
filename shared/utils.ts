@@ -1,4 +1,3 @@
-import type { PostEntryResponse } from "deso-protocol";
 
 export const endpoints = {
   offering: 'game/make',
@@ -46,22 +45,23 @@ export type StartWeekRequest = {
 };
 
 //bots
-export type ConsumerEvent<Response> = RoundEvent<Response>
-export type RoundEvent<Response> = { res?: Response, err?: string }
-export type CalfEvent<Response> = RoundEvent<Response>
+// export type ConsumerEvent<Response> = RoundEvent<Response>
+// export type RoundEvent<Response> = { res?: Response, err?: string }
+// export type CalfEvent<Response> = RoundEvent<Response>
 
 //app Responses
-export type Start = { startedWeek: PostEntryResponse, }
-export type End = { end: string, }
-export type Offering = { offeringOptions: PostEntryResponse[], offering: PostEntryResponse }
-export type Pay = { payments: string[] }
-export type Sacrifice = { updatedOffering: PostEntryResponse }
+// export type Start = { startedWeek: PostEntryResponse, }
+// export type End = { end: string, }
+// export type Offering = { offeringOptions: PostEntryResponse[], offering: PostEntryResponse }
+// export type Pay = { payments: string[] }
+// export type Sacrifice = { updatedOffering: PostEntryResponse }
 //app actions
 //
-export type RunStart = { message: string, payload: Start }
-export type RunOffering = { message: string, payload: { offeringOptions: PostEntryResponse[], offering: PostEntryResponse } }
-export type RunEnd = { message: string, payload: End }
-export type RunPay = { message: string, payload: Pay }
-export type RunSnapShot = { message: string, payload: Pay }
-export type RunMakeSacrifice = { message: string, payload: Sacrifice }
+// export type RunStart = { message: string, payload: Start }
+// export type RunOffering = { message: string, payload: { offeringOptions: PostEntryResponse[], offering: PostEntryResponse } }
+// export type RunEnd = { message: string, payload: End }
+// export type RunPay = { message: string, payload: Pay }
+// export type RunSnapShot = { message: string, payload: Pay }
+// export type RunMakeSacrifice = { message: string, payload: Sacrifice }
+
 

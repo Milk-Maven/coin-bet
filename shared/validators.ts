@@ -1,32 +1,64 @@
-import { TypeOf, z } from 'zod';
+import { type TypeOf, z } from 'zod';
 import { PostType } from './utils.js';
 
-export const offeringCreateValidation = z.object({
-  event_description: z.string().min(10).refine((data) => data !== '', { message: 'Event description is required' }),
-  outcomes: z.array(
-    z.string()
-  ).refine((data) => {
-    return data[0]?.length && data[1]?.length
-  }, {
-
-    message: 'At least two outcomes are required',
-  }),
-  endDate: z.string().refine((data) => {
-    // Check if the value is a valid ISO string
-    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3}Z?)?$/.test(data);
-  }, { message: 'Invalid end date format' }),
-  publicKey: z.string().min(10)
+export const CalfProfileValidation = z.object({
+  calfWeeks: z.record(z.string()).optional(),
+  currentWeekHashHex: z.string().optional()
 });
+export type CalfProfileGame = TypeOf<typeof CalfProfileValidation>;
+// current week state
+export const CalfWeekValidation = z.object({
+  offerings: z.record(z.string()),
+  latestWeek: z.boolean()
+});
+export type CalfWeekGame = TypeOf<typeof CalfWeekValidation>;
+// offering state
+export const CalfOfferingValidation = z.object({
+  endDate: z.string(),
+  creatorPublicKey: z.string(),
+  options: z.array(z.string()),
+  winningOption: z.string(),
+  Body: z.string()
+});
+export type CalfOfferingGame = TypeOf<typeof CalfOfferingValidation>;
+// sacrifice
+export const CalfSacrificeValidation = z.object({
+  sacrifices: z.record(z.object({
+    amountNanos: z.string(), diamonds: z.array(z.object({ diamondLevel: z.string() }))
+    // DiamondSenderProfile: ProfileEntryResponse | null;
+  }))
+})
+export type CalfSacrificeGame = TypeOf<typeof CalfSacrificeValidation>;
+// export type CalfSacrificeGame = {
+//   [publicKey: string]: { amountNanos, diamonds: DiamondSenderResponse[] }
+// }
+
+// export const offeringCreateValidation = z.object({
+//   event_description: z.string().min(10).refine((data) => data !== '', { message: 'Event description is required' }),
+//   outcomes: z.array(
+//     z.string()
+//   ).refine((data) => {
+//     return data[0]?.length && data[1]?.length
+//   }, {
+//
+//     message: 'At least two outcomes are required',
+//   }),
+//   endDate: z.string().refine((data) => {
+//     // Check if the value is a valid ISO string
+//     return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3}Z?)?$/.test(data);
+//   }, { message: 'Invalid end date format' }),
+//   publicKey: z.string().min(10)
+// });
 
 // Example usage
 
-export const offeringRequestValidation = z.object({
-  PostHashHax: z.string(),
-  OptionPostHashHex: z.array(z.string()),
-  PosterPublicKeyBase58Check: z.string()
-
-});
-
+// export const offeringRequestValidation = z.object({
+//   PostHashHax: z.string(),
+//   OptionPostHashHex: z.array(z.string()),
+//   PosterPublicKeyBase58Check: z.string()
+//
+// });
+//
 export const sacrificeDiamondsRequestValidation = z.object({
   TransactionHex: z.string(),
   DiamondPostHashHex: z.string(),
@@ -43,8 +75,6 @@ export const sacrificeDesoRequestValidation = z.object({
 
 export type SacrificeDesoRequest = TypeOf<typeof sacrificeDesoRequestValidation>;
 export type SacrificeDiamondRequest = TypeOf<typeof sacrificeDiamondsRequestValidation>;
-export type OfferringCreateRequest = TypeOf<typeof offeringCreateValidation>;
-export type OfferingGetRequest = TypeOf<typeof offeringRequestValidation>;
 
 export const endpoints = {
   betNew: 'bet/new',
@@ -63,123 +93,75 @@ export type StartWeekRequest = TypeOf<typeof startWeekValidation>;
 
 
 
-export const offeringExamples: Readonly<OfferringCreateRequest[]> = [{
-  event_description: "Norse Ragnarok - End of the World",
-  outcomes: ["Fimbulwinter", "Twilight of the Gods", "Serpent's Wrath"],
-  endDate: "2024-01-30T12:00:00Z",
-  publicKey: "PublicKey1",
-},
-{
-  event_description: "Mayan Apocalypse - End of the World",
-  outcomes: ["Solar Cataclysm", "Harmony Restoration", "Earthly Transformation"],
-  endDate: "2024-02-28T12:00:00Z",
-  publicKey: "PublicKey2",
-},
-{
-  event_description: "Greek Titanomachy - End of the World",
-  outcomes: ["Olympian Triumph", "World Renewal", "Chaos Unleashed"],
-  endDate: "2024-03-31T12:00:00Z",
-  publicKey: "PublicKey3",
-},
-{
-  event_description: "Hindu Kali Yuga - End of the World",
-  outcomes: ["Cosmic Rebirth", "Dharma Restoration", "Eternal Strife"],
-  endDate: "2024-04-30T12:00:00Z",
-  publicKey: "PublicKey4",
-},
-{
-  event_description: "Egyptian Apocalypse - End of the World",
-  outcomes: ["Judgment of Osiris", "Rebirth of Ra", "Anarchy of Set"],
-  endDate: "2024-05-31T12:00:00Z",
-  publicKey: "PublicKey5",
-},
-{
-  event_description: "Norse Fimbulwinter - End of the World",
-  outcomes: ["Ice Age", "Eternal Darkness", "Frost Giants' Dominion"],
-  endDate: "2024-06-30T12:00:00Z",
-  publicKey: "PublicKey6",
-},
-{
-  event_description: "Aztec Ollin Tonatiuh - End of the World",
-  outcomes: ["Solar Cataclysm", "Earthquakes", "Age of Rebirth"],
-  endDate: "2024-07-31T12:00:00Z",
-  publicKey: "PublicKey7",
-},
-{
-  event_description: "Japanese Kurozuka - End of the World",
-  outcomes: ["Demon Onslaught", "Celestial Chaos", "Spiritual Harmony"],
-  endDate: "2024-08-31T12:00:00Z",
-  publicKey: "PublicKey8",
-},
-{
-  event_description: "Celtic Prophecy - End of the World",
-  outcomes: ["Elemental Upheaval", "Otherworldly Invasion", "Druidic Renewal"],
-  endDate: "2024-09-30T12:00:00Z",
-  publicKey: "PublicKey9",
-},
-{
-  event_description: "Chinese Apocalyptic Fire - End of the World",
-  outcomes: ["Inferno", "Dragon's Fury", "Benevolent Phoenix"],
-  endDate: "2024-10-31T12:00:00Z",
-  publicKey: "PublicKey10",
-},
-{
-  event_description: "Babylonian Tiamat's Wrath - End of the World",
-  outcomes: ["Cosmic Chaos", "Beastly Onslaught", "Marduk's Victory"],
-  endDate: "2024-11-30T12:00:00Z",
-  publicKey: "PublicKey11",
-},
-{
-  event_description: "Inuit Qivittoq's Return - End of the World",
-  outcomes: ["Spiritual Reckoning", "Arctic Desolation", "Ancestral Blessing"],
-  endDate: "2024-12-31T12:00:00Z",
-  publicKey: "PublicKey12",
-},
-{
-  event_description: "Polynesian Rangi and Papa - End of the World",
-  outcomes: ["Primordial Chaos", "Island Catastrophe", "Celestial Harmony"],
-  endDate: "2025-01-31T12:00:00Z",
-  publicKey: "PublicKey13",
-},
-{
-  event_description: "Mesoamerican Xiuhtecuhtli's Rage - End of the World",
-  outcomes: ["Solar Devastation", "Volcanic Eruption", "Quetzalcoatl's Blessing"],
-  endDate: "2025-02-28T12:00:00Z",
-  publicKey: "PublicKey14",
-},
-{
-  event_description: "Sumerian Kur's Awakening - End of the World",
-  outcomes: ["Underworld Unleashed", "Eternal Night", "Enlil's Justice"],
-  endDate: "2025-03-31T12:00:00Z",
-  publicKey: "PublicKey15",
-},
-{
-  event_description: "African Nyambe's Judgment - End of the World",
-  outcomes: ["Celestial Tribunal", "Nature's Wrath", "Ancestral Blessings"],
-  endDate: "2025-04-30T12:00:00Z",
-  publicKey: "PublicKey16",
-},
-{
-  event_description: "Roman Prodigium Aquilae - End of the World",
-  outcomes: ["Eagle's Prophecy", "Imperial Downfall", "Pax Romana Resurrection"],
-  endDate: "2025-05-31T12:00:00Z",
-  publicKey: "PublicKey17",
-},
-{
-  event_description: "Hawaiian Pele's Fury - End of the World",
-  outcomes: ["Volcanic Apocalypse", "Oceanic Catastrophe", "Lava Goddess's Blessing"],
-  endDate: "2025-06-30T12:00:00Z",
-  publicKey: "PublicKey18",
-},
-{
-  event_description: "Slavic Nav - End of the World",
-  outcomes: ["World Tree's Collapse", "Slavic Deities' Clash", "Slavic Renaissance"],
-  endDate: "2025-07-31T12:00:00Z",
-  publicKey: "PublicKey19",
-},
-{
-  event_description: "Aboriginal Dreamtime's Unraveling - End of the World",
-  outcomes: ["Dreamtime Dissolution", "Spiritual Anarchy", "Nature's Rebirth"],
-  endDate: "2025-08-31T12:00:00Z",
-  publicKey: "PublicKey20",
-}];
+export const offeringExamples: Readonly<CalfOfferingGame[]> = [
+  {
+    endDate: "399 BCE",
+    creatorPublicKey: "SocratesPublicKey1",
+    options: ["Accusation of Corrupting Youth", "Impiety Charges"],
+    winningOption: "Death by Hemlock",
+    Body: "Socrates accepts his fate with philosophical calmness, asserting the importance of questioning and introspection.",
+  },
+  {
+    endDate: "420 BCE",
+    creatorPublicKey: "SocratesPublicKey2",
+    options: ["Criticism from Sophists", "Debate with Gorgias"],
+    winningOption: "Philosophical Discourse",
+    Body: "Socrates engages in dialectical discussions to challenge sophistry, emphasizing the pursuit of knowledge over rhetorical skills.",
+  },
+  {
+    endDate: "415 BCE",
+    creatorPublicKey: "SocratesPublicKey3",
+    options: ["Athenian Public's Disapproval", "Association with Critias"],
+    winningOption: "Ostracism",
+    Body: "Socrates faces public disapproval and ostracism, highlighting the tension between his ideas and societal norms.",
+  },
+  {
+    endDate: "411 BCE",
+    creatorPublicKey: "SocratesPublicKey4",
+    options: ["Political Instability in Athens", "Fall of the Thirty Tyrants"],
+    winningOption: "Transition to Democratic Rule",
+    Body: "Socrates witnesses political turmoil, raising questions about the role of philosophy in times of societal upheaval.",
+  },
+  {
+    endDate: "406 BCE",
+    creatorPublicKey: "SocratesPublicKey5",
+    options: ["Cynical Criticism from Diogenes", "Conflict with Antisthenes"],
+    winningOption: "Philosophical Dialogues",
+    Body: "Socrates engages with critics like Diogenes and Antisthenes, fostering intellectual discourse within the philosophical community.",
+  },
+  {
+    endDate: "399 BCE",
+    creatorPublicKey: "SocratesPublicKey6",
+    options: ["Defiance of Jury's Verdict", "Justification of Actions"],
+    winningOption: "Acceptance of Death Sentence",
+    Body: "Socrates refuses to compromise his philosophical principles, choosing death over betraying his beliefs during the trial.",
+  },
+  {
+    endDate: "406 BCE",
+    creatorPublicKey: "SocratesPublicKey7",
+    options: ["Erosion of Influence", "Impact of Plato's Academy"],
+    winningOption: "Legacy in Philosophical Thought",
+    Body: "Socrates' teachings continue to influence philosophy, despite challenges to his immediate societal standing.",
+  },
+  {
+    endDate: "410 BCE",
+    creatorPublicKey: "SocratesPublicKey8",
+    options: ["Allegations of Atheism", "Conflict with Anaxagoras"],
+    winningOption: "Philosophical Defense",
+    Body: "Socrates defends his theological ideas, emphasizing reason and questioning traditional beliefs in the face of accusations.",
+  },
+  {
+    endDate: "403 BCE",
+    creatorPublicKey: "SocratesPublicKey9",
+    options: ["Post-Peloponnesian War Challenges", "Impact on Intellectual Climate"],
+    winningOption: "Philosophical Inquiry",
+    Body: "Socrates navigates the aftermath of the war, contributing to intellectual developments that shape post-war Athens.",
+  },
+  {
+    endDate: "398 BCE",
+    creatorPublicKey: "SocratesPublicKey10",
+    options: ["Rivalry with Protagoras", "Competing Philosophical Schools"],
+    winningOption: "Philosophical Debates",
+    Body: "Socrates engages in intellectual debates with contemporaries, addressing rival philosophical perspectives.",
+  },
+];

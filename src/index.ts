@@ -1,11 +1,9 @@
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { endpoints } from '../shared/utils.js';
 import dotenv from 'dotenv'
-import { offeringRequestValidation, } from '../shared/validators.js';
-import { CalfOfferingGame } from './bots/calfState.js'
+import { CalfOfferingGame, CalfOfferingValidation, } from '../shared/validators.js';
 import { GoldenCalfBot } from './bots/goldenCalf.js';
 const calf = new GoldenCalfBot()
 dotenv.config();
@@ -25,10 +23,10 @@ app.use(cors());
 
 // Testing
 app.post('/' + endpoints.offering, async function(req: { body: CalfOfferingGame }, res) {
-  // add zod validation
-  const request = offeringRequestValidation.safeParse(req.body)
+  console.log(req.body)
+  const request = CalfOfferingValidation.safeParse(req.body) as unknown as { error: string, success: boolean }
   if (!request.success) {
-    return res.status(500).json({ err: 'issue validating request' });
+    return res.status(500).json({ err: 'issue validating request: ' + request.error });
   }
   const payload = await calf.setOfferingForWeekState({ goldenCalf: req.body })
   return res.status(200).json(payload);
@@ -71,12 +69,10 @@ app.post('/' + endpoints.resetState, async function(res) {
     await calf.clearExtraData()
   }
   catch {
-
     res.status(500).json({ success: false, message: 'failed to clear extra data' })
   }
 }
 )
-
 
 app.post('/' + endpoints.init, async function(req: { body: { description: string } }, res) {
   try {
@@ -86,7 +82,6 @@ app.post('/' + endpoints.init, async function(req: { body: { description: string
   } catch {
     res.status(500).json({ success: false, message: 'unable to to startsnapshot' })
   }
-  // }
 });
 // TODO
 app.post('/' + endpoints.snapshot, async function(_req, res) {
@@ -97,7 +92,7 @@ app.post('/' + endpoints.snapshot, async function(_req, res) {
     return res.status(200).json({ profile, week, offerings });
   } catch {
     // todo add more precise error handling
-    res.status(404).json({ success: false, message: 'unable to fetch snapshot' })
+    res.status(500).json({ success: false, message: 'unable to fetch snapshot' })
   }
 });
 
@@ -138,6 +133,13 @@ app.post('/' + endpoints.start, async function(req: { body: { description: strin
 // start the server
 app.listen(port, async () => {
   console.log('listening on port ' + port)
+  const res = await calf.getProfile()
+  const res2 = await calf.getOfferingsForWeek({ PostHashHex: res.currentWeekHashHex })
+  console.log(res2)
+  // const res = CalfOfferingValidation.parse({ "endDate": "2024-02-01T05:05:00.000Z", "creatorPublicKey": "BC1YLgJ6FWVz9GKQwktGmgRQ7DDFZj65ZhyxTGiSGnCGcYX4Hhx2VaY", "options": ["a", "b", "c", "d"], "winningOption": "", "Body": "test" })
+  // console.log(res)
+  // await calf.setOfferingForWeekState({ goldenCalf: res })
+  // calf.setOferingForWeekState()
 })
 
 

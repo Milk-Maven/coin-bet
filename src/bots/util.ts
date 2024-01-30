@@ -37,11 +37,16 @@ export class UtilBot extends BaseBot {
     return Profile
   }
 
-  public static async getCommentsForPost({ PostHashHex, CommentCount }: deso.PartialWithRequiredFields<deso.PostEntryResponse, 'CommentCount'>, filter?: (p: PostEntryResponse) => boolean) {
+  public static async getCommentsForPost({ PostHashHex }: deso.PartialWithRequiredFields<deso.PostEntryResponse, 'CommentCount'>, filter?: (p: PostEntryResponse) => boolean) {
     let CommentOffset = 0
     let posts: deso.PostEntryResponse[] = []
-    while (CommentOffset < CommentCount) { // pagination loop to get all comments
+    console.log('here')
+
+
+    const { PostFound } = await deso.getSinglePost({ 'PostHashHex': PostHashHex, CommentOffset, CommentLimit: 20, ThreadLeafLimit: 1, ThreadLevelLimit: 2 })
+    while (CommentOffset < PostFound.CommentCount) { // pagination loop to get all comments
       const { PostFound } = await deso.getSinglePost({ 'PostHashHex': PostHashHex, CommentOffset, CommentLimit: 20, ThreadLeafLimit: 1, ThreadLevelLimit: 2 })
+
       if (PostFound.Comments) {
         posts = [...posts, ...PostFound.Comments]
       }

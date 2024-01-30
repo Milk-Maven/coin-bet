@@ -1,7 +1,6 @@
 import DB from 'simple-json-db';
 import { ConsumerBot } from './consumer.js';
 import { GoldenCalfBot } from './goldenCalf.js';
-import { RoundEvent, RunEnd, RunPay, } from '../../shared/utils.js';
 
 export type ConsumerBotMetaData = {
   DESOBalanceNanos: number;
@@ -38,20 +37,20 @@ export function generateConsumerBots(goldenCalfBot: GoldenCalfBot) {
 }
 
 //TODO
-async function endWeek(): Promise<RoundEvent<RunEnd>> {
-  // const retire = await calf.retireCurrentWeek()
-
-  // if (retire.err) return { err: retire.err }
-
-  return { res: { message: '', payload: { end: '' } } }
-}
+// async function endWeek(): {
+//   // const retire = await calf.retireCurrentWeek()
+//
+//   // if (retire.err) return { err: retire.err }
+//
+//   return { res: { message: '', payload: { end: '' } } }
+// }
 
 //TODO
-export async function payWeek(): Promise<RoundEvent<RunPay>> {
-  // const calf = new GoldenCalfBot()
-
-  return { res: { message: '', payload: { payments: [] } } }
-}
+// export async function payWeek(): Promise<RoundEvent<RunPay>> {
+//   // const calf = new GoldenCalfBot()
+//
+//   return { res: { message: '', payload: { payments: [] } } }
+// }
 
 //TODO
 export async function gameState() {
@@ -102,6 +101,6 @@ export async function gameState() {
 
 export const game = {
   gameState,
-  endWeek,
-  payWeek,
+  // endWeek,
+  //   payWeek,
 }

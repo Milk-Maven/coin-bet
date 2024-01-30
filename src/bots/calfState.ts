@@ -1,58 +1,9 @@
-import { PostEntryResponse, ProfileEntryResponse, } from "deso-protocol";
-import { TypeOf, z } from "zod";
 import { UtilBot } from "./util.js";
 import { BaseBot } from "./bot.js";
 import { verify } from "../../shared/utils.js";
+import { CalfOfferingGame, CalfOfferingValidation, CalfProfileGame, CalfProfileValidation, CalfWeekGame, CalfWeekValidation } from "../../shared/validators.js";
 
 // profile state
-export const CalfProfileValidation = z.object({
-  calfWeeks: z.record(z.string()).optional(),
-  currentWeekHashHex: z.string().optional()
-});
-export type CalfProfileGame = TypeOf<typeof CalfProfileValidation>;
-export type CalfProfile = {
-  profile: ProfileEntryResponse,
-  game: CalfProfileGame
-}
-// current week state
-export const CalfWeekValidation = z.object({
-  offerings: z.record(z.string()),
-  latestWeek: z.boolean()
-});
-export type CalfWeekGame = TypeOf<typeof CalfWeekValidation>;
-export type CalfWeek = {
-  post: PostEntryResponse,
-  game: CalfWeekGame
-}
-// offering state
-export const CalfOfferingValidation = z.object({
-  endDate: z.string(),
-  totalOptions: z.string(),
-  creatorPublicKey: z.string(),
-  options: z.array(z.string()),
-  winningOption: z.string(),
-  Body: z.string()
-});
-export type CalfOfferingGame = TypeOf<typeof CalfOfferingValidation>;
-export type CalfOffering = {
-  post: PostEntryResponse,
-  game: CalfOfferingGame
-}
-// sacrifice
-export const CalfSacrificeValidation = z.object({
-  sacrifices: z.record(z.object({
-    amountNanos: z.string(), diamonds: z.array(z.object({ diamondLevel: z.string() }))
-    // DiamondSenderProfile: ProfileEntryResponse | null;
-  }))
-})
-export type CalfSacrificeGame = TypeOf<typeof CalfSacrificeValidation>;
-// export type CalfSacrificeGame = {
-//   [publicKey: string]: { amountNanos, diamonds: DiamondSenderResponse[] }
-// }
-export type CalfSacrifice = {
-  post: PostEntryResponse,
-  game: CalfSacrificeGame
-}
 export class CalfState extends BaseBot {
 
   //profile calls
@@ -67,7 +18,6 @@ export class CalfState extends BaseBot {
   }
   public async getProfile(): Promise<CalfProfileGame> {
     const profile = await UtilBot.getSingleProfile({ PublicKeyBase58Check: this.pubKey })
-    console.log(profile.ExtraData.goldenCalf)
     return CalfProfileValidation.parse(JSON.parse(profile.ExtraData.goldenCalf))
   }
 
@@ -77,6 +27,7 @@ export class CalfState extends BaseBot {
     const weekPost = await UtilBot.getSinglePost({ PostHashHex: PostHashHex ?? profile.currentWeekHashHex });
     return CalfWeekValidation.parse(JSON.parse(weekPost.PostExtraData.goldenCalf))
   }
+
   public async updateWeek({ state, PostHashHexToModify, }: { state: Partial<CalfWeekGame>, PostHashHexToModify: string | null }) {
     const week = PostHashHexToModify ? await this.getWeek({ PostHashHex: PostHashHexToModify }) : {}
     const goldenCalf: CalfWeekGame = { offerings: { ...week.offerings, ...state.offerings, }, latestWeek: state.latestWeek }
@@ -88,12 +39,13 @@ export class CalfState extends BaseBot {
   public async setWeek({ Body }: { Body: string }) {
     return this.submitPost({
       Body,
-      PostExtraData: { goldenCalf: JSON.stringify({ latestWeek: true }) },
+      PostExtraData: { goldenCalf: JSON.stringify({ latestWeek: true, offerings: {} }) },
     })
   }
   // offering calls
   public async getOfferingsForWeek({ PostHashHex }: { PostHashHex: string }): Promise<CalfOfferingGame[]> {
     const comments = await UtilBot.getCommentsForPost({ PostHashHex, CommentCount: 0 });
+    console.log(comments);
     const offerings = comments.map(o => {
       return CalfOfferingValidation.parse(JSON.parse(o.PostExtraData.goldenCalf))
     })
